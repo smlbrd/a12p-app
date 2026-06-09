@@ -1,4 +1,4 @@
-name: Run eslint, check types
+name: Lint & Check Types
 
 on:
   pull_request:
