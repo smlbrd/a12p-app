@@ -1,9 +1,7 @@
-name: Run eslint, check types
+name: Lint & Check Types
 
 on:
   pull_request:
-    branches: [ main ]
-  push:
     branches: [ main ]
 
 jobs:
