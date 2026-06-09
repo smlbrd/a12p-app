@@ -1,0 +1,16 @@
+# Webstorm
+.idea/
+
+# Dependencies
+node_modules/
+
+# Build and test outputs
+dist/
+*.tsbuildinfo
+
+# Vitest artifacts
+coverage/
+
+# Environment varialbes
+.env
+.env.*
