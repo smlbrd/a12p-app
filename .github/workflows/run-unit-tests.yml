@@ -5,8 +5,8 @@ on:
     branches: [ main ]
 
 jobs:
-  check-code-coverage:
-    name: Check Code Coverage
+  run-unit-tests:
+    name: Run Unit Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -27,13 +27,13 @@ jobs:
 
       - name: Wait for PostgreSQL to be ready
         run: |
-          until docker compose exec -T test_db pg_isready -U test_user -d coin_test_db; do
-          echo "Waiting for database to accept connections..."
-          sleep 1
-          done
+            until docker compose exec -T test_db pg_isready -U test_user -d coin_test_db; do
+            echo "Waiting for database to accept connections..."
+            sleep 1
+            done
 
       - name: Sync Database Schema
         run: npx drizzle-kit push
 
-      - name: Check code coverage
-        run: npx vitest run --coverage
+      - name: Run tests
+        run: npx vitest run
