@@ -1,5 +1,5 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import { Pool, type QueryResult } from "pg";
+import { Pool } from "pg";
 import * as schema from "./schema.ts";
 
 const pool = new Pool({
@@ -12,20 +12,5 @@ const pool = new Pool({
 });
 
 export const db = drizzle(pool, { schema });
-
-export const query = async (
-    text: string,
-    params?: string[],
-): Promise<QueryResult> => {
-    try {
-        const res = await pool.query(text, params);
-
-        return res;
-    } catch (error) {
-        console.error("Database query error:", error);
-
-        throw error;
-    }
-};
 
 export { pool };
