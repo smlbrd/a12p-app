@@ -3,51 +3,37 @@ import { db } from "./db/db.ts";
 import { coins, insertCoinSchema } from "./db/schema.ts";
 import { zValidator } from "@hono/zod-validator";
 import { HTTPException } from "hono/http-exception";
-import { ZodError } from "zod";
+import { z, ZodError } from "zod";
 
 const app = new Hono();
 
-app.get("/health", (c) => {
-    return c.body(null, 200);
-})
+const isHttpException = (err: unknown): err is HTTPException =>
+    err instanceof HTTPException || (err instanceof Error && "status" in err);
 
-app.get("/coins", async (c) => {
-    const allCoins = await db.select().from(coins);
-    return c.json(allCoins, 200);
-})
+const validateJson = <T extends z.ZodTypeAny>(schema: T) =>
+    zValidator("json", schema, (res) => { if (!res.success) throw res.error; });
 
-app.post("/coins", zValidator("json", insertCoinSchema, (result, c) => {
-        if (!result.success) {
-            return c.json({
-                success: false,
-                error: {
-                    issues: result.error.issues.map((iss) => ({
-                        path: iss.path,
-                        message: iss.message
-                    }))
-                }
-            }, 400);
-        }
-    }),
-    async (c) => {
-        const validatedData = c.req.valid("json");
+app.get("/health", (c) => c.body(null, 200));
 
-        const [newCoin] = await db
-            .insert(coins)
-            .values({
-                name: validatedData.name,
-                isCompleted: validatedData.isCompleted,
-            })
-            .returning();
+app.get("/coins", async (c) => c.json(await db.select().from(coins)));
 
-        return c.json(newCoin, 201)
-})
+app.post("/coins", validateJson(insertCoinSchema), async (c) => {
+    const [newCoin] = await db
+        .insert(coins)
+        .values(c.req.valid("json"))
+        .onConflictDoNothing({ target: coins.name })
+        .returning();
+
+    if (!newCoin) {
+        throw new HTTPException(409, { message: "Coin already exists" });
+    }
+
+    return c.json(newCoin, 201);
+});
 
 app.onError((err, c) => {
-    const isRawSyntaxError = err.name === 'SyntaxError' && err.message.includes('JSON');
-    const isHonoJsonError = err instanceof HTTPException && err.message === 'Malformed JSON in request body';
-
-    if (isRawSyntaxError || isHonoJsonError) {
+    if ((err.name === 'SyntaxError' && err.message.includes('JSON')) ||
+        (err instanceof HTTPException && err.message === 'Malformed JSON in request body')) {
         return c.json({
             success: false,
             error: "MALFORMED_JSON",
@@ -55,19 +41,26 @@ app.onError((err, c) => {
         }, 400);
     }
 
-    if (err instanceof HTTPException && err.cause instanceof ZodError) {
+    if (err instanceof ZodError) {
         return c.json({
             success: false,
-            error: "VALIDATION_FAILED",
-            details: err.cause.flatten().fieldErrors,
+            error: {
+                issues: err.issues.map(({ path, message }) => ({ path, message }))
+            }
         }, 400);
     }
 
+    if (isHttpException(err)) {
+        const toErrorKey = (msg: string) => msg.toUpperCase().replace(/\s+/g, "_");
+
+        return c.json({
+            success: false,
+            error: toErrorKey(err.message || "HTTP_ERROR")
+        }, err.status);
+    }
+
     console.error(`[Server Error]: ${err.stack || err.message}`);
-    return c.json({
-        success: false,
-        error: "INTERNAL_SERVER_ERROR"
-    }, 500);
+    return c.json({ success: false, error: "INTERNAL_SERVER_ERROR" }, 500);
 });
 
 export default app;

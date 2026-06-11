@@ -103,7 +103,19 @@ describe("POST /coins", () => {
         })
     })
 
-    test("should return a 400 error if name missing", async () => {
+    test("should return a 400 error if name is contains to characters", async () => {
+        const res = await jsonPost("/coins", { name: "   ", isCompleted: false });
+
+        expect(res.status).toBe(400);
+
+        const data = await res.json();
+
+        expect(data.success).toBe(false);
+        expect(data.error.issues[0].path[0]).toBe("name");
+        expect(data.error.issues[0].message).toBe("Name cannot be empty");
+    });
+
+    test("should return a 400 error if empty request", async () => {
         const invalidCoin = {}
         const res = await jsonPost("/coins", invalidCoin)
 
@@ -128,6 +140,16 @@ describe("POST /coins", () => {
         expect(data.error.issues[0].message).toBe("Invalid input: expected string, received number");
     });
 
+    test("should return a 400 error if isCompleted is not a boolean", async () => {
+        const res = await jsonPost("/coins", { name: "Solana", isCompleted: "true" });
+
+        expect(res.status).toBe(400);
+
+        const data = await res.json();
+        expect(data.success).toBe(false);
+        expect(data.error.issues[0].path[0]).toBe("isCompleted");
+    });
+
     test("should return a 400 error for malformed JSON request body", async () => {
         const res = await app.request("/coins", {
             method: "POST",
@@ -136,5 +158,13 @@ describe("POST /coins", () => {
         });
 
         expect(res.status).toBe(400);
+
+        const data = await res.json();
+
+        expect(data).toEqual({
+            success: false,
+            error: "MALFORMED_JSON",
+            details: "The request body could not be parsed as valid JSON."
+        });
     });
 })
