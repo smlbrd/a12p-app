@@ -6,6 +6,7 @@
     "dev": "tsx watch src/index.ts",
     "lint": "eslint .",
     "test": "vitest run",
+    "coverage": "vitest run --coverage",
     "prepare": "husky",
     "seed": "tsx src/db/run-seed.ts"
   },
@@ -21,6 +22,7 @@
   "type": "module",
   "dependencies": {
     "@hono/node-server": "^2.0.4",
+    "@hono/zod-validator": "^0.8.0",
     "hono": "^4.12.25"
   },
   "devDependencies": {

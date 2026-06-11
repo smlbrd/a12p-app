@@ -52,13 +52,16 @@ describe("POST /coins", () => {
             ...newCoin
         });
 
-        const dbCoin = await db
+        const [dbCoin] = await db
             .select()
             .from(coins)
             .where(eq(coins.id, data.id))
             .limit(1);
 
-        expect(dbCoin).toMatchObject(newCoin);
+        expect(dbCoin).toMatchObject({
+            id: expect.any(String),
+            ...newCoin
+        });
     })
 
     // validation - fails if no name in body

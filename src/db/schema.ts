@@ -1,5 +1,5 @@
 import { pgTable, uuid, varchar, boolean } from "drizzle-orm/pg-core";
-import { createSelectSchema } from "drizzle-zod";
+import { createSelectSchema, createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const coins = pgTable("coins", {
@@ -9,5 +9,7 @@ export const coins = pgTable("coins", {
 });
 
 export const selectCoinSchema = createSelectSchema(coins);
-
 export type Coin = z.infer<typeof selectCoinSchema>;
+
+export const insertCoinSchema = createInsertSchema(coins);
+export type NewCoin = z.infer<typeof insertCoinSchema>;
