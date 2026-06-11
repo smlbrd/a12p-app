@@ -1,4 +1,4 @@
-import {describe, test, expect, beforeEach} from 'vitest';
+import { describe, test, expect, beforeEach } from 'vitest';
 import app from "./index.ts";
 import { db } from "./db/db.ts";
 import { coins } from "./db/schema.ts";
