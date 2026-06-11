@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach } from 'vitest';
+import { describe, test, expect, beforeEach, vi } from 'vitest';
 import app from "./app.ts";
 import { db } from "./db/db.ts";
 import { coins } from "./db/schema.ts";
@@ -49,6 +49,25 @@ describe("GET /coins", () => {
         expect(data).toHaveLength(coinsData.length);
         expect(data).toMatchObject(coinsData);
     })
+
+    test("should return a 500 error if the database catastrophically crashes", async () => {
+        const dbSpy = vi.spyOn(db, "select").mockImplementationOnce(() => {
+            throw new Error("Database connection timed out abruptly");
+        });
+
+        const res = await app.request("/coins");
+
+        expect(res.status).toBe(500);
+
+        const data = await res.json();
+
+        expect(data).toEqual({
+            success: false,
+            error: "INTERNAL_SERVER_ERROR"
+        });
+
+        dbSpy.mockRestore();
+    });
 })
 
 const jsonPost = (path: string, body: unknown) =>

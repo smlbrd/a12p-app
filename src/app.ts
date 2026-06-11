@@ -32,8 +32,7 @@ app.post("/coins", validateJson(insertCoinSchema), async (c) => {
 });
 
 app.onError((err, c) => {
-    if ((err.name === 'SyntaxError' && err.message.includes('JSON')) ||
-        (err instanceof HTTPException && err.message === 'Malformed JSON in request body')) {
+    if (err instanceof HTTPException && err.message === 'Malformed JSON in request body') {
         return c.json({
             success: false,
             error: "MALFORMED_JSON",
@@ -55,11 +54,11 @@ app.onError((err, c) => {
 
         return c.json({
             success: false,
-            error: toErrorKey(err.message || "HTTP_ERROR")
+            error: toErrorKey(err.message)
         }, err.status);
     }
 
-    console.error(`[Server Error]: ${err.stack || err.message}`);
+    console.error("[Server Error]", err);
     return c.json({ success: false, error: "INTERNAL_SERVER_ERROR" }, 500);
 });
 
