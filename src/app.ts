@@ -1,6 +1,6 @@
 import {Hono} from "hono"
-import {db} from "./db/db.ts"
-import {coins, insertCoinSchema} from "./db/schema.ts"
+import {insertCoinSchema} from "./db/schema.ts"
+import {createCoin, getAllCoins} from "./services/coinService.ts"
 import {zValidator} from "@hono/zod-validator"
 import {HTTPException} from "hono/http-exception"
 import {z, ZodError} from "zod"
@@ -17,14 +17,12 @@ const validateJson = <T extends z.ZodTypeAny>(schema: T) =>
 
 app.get("/health", (c) => c.body(null, 200))
 
-app.get("/coins", async (c) => c.json(await db.select().from(coins)))
+app.get("/coins", async (c) => c.json(await getAllCoins()))
 
 app.post("/coins", validateJson(insertCoinSchema), async (c) => {
-  const [newCoin] = await db
-    .insert(coins)
-    .values(c.req.valid("json"))
-    .onConflictDoNothing({ target: coins.name })
-    .returning()
+  const validatedBody = c.req.valid("json")
+
+  const newCoin = await createCoin(validatedBody)
 
   if (!newCoin) {
     throw new HTTPException(409, { message: "Coin already exists" })
@@ -36,7 +34,11 @@ app.post("/coins", validateJson(insertCoinSchema), async (c) => {
 app.onError((err, c) => {
   if (err instanceof HTTPException && err.message === "Malformed JSON in request body") {
     return c.json(
-      { success: false, error: "MALFORMED_JSON", details: "The request body could not be parsed as valid JSON." },
+      {
+        success: false,
+        error: "MALFORMED_JSON",
+        details: "The request body could not be parsed as valid JSON."
+      },
       400
     )
   }
@@ -45,24 +47,16 @@ app.onError((err, c) => {
     return c.json(
       {
         success: false,
-        error: {
-          issues: err.issues.map(({ path, message }) => ({ path, message }))
-        }
+        error: { issues: err.issues.map(({ path, message }) => ({ path, message })) }
       },
       400
     )
   }
 
   if (isHttpException(err)) {
-    const toErrorKey = (msg: string) => msg.toUpperCase().replace(/\s+/g, "_")
+    const toErrorKey = (msg: string) => msg.toUpperCase().replaceAll(/\s+/g, "_")
 
-    return c.json(
-      {
-        success: false,
-        error: toErrorKey(err.message)
-      },
-      err.status
-    )
+    return c.json({ success: false, error: toErrorKey(err.message) }, err.status)
   }
 
   console.error("[Server Error]", err)
