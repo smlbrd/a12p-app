@@ -110,4 +110,14 @@ describe("POST /coins", () => {
         expect(data.error.issues[0].path[0]).toBe("name");
         expect(data.error.issues[0].message).toBe("Invalid input: expected string, received number");
     });
+
+    test("should return a 400 error for malformed JSON request body", async () => {
+        const res = await app.request("/coins", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: "{ invalid-json: "
+        });
+
+        expect(res.status).toBe(400);
+    });
 })

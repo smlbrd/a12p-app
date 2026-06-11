@@ -44,7 +44,10 @@ app.post("/coins", zValidator("json", insertCoinSchema, (result, c) => {
 })
 
 app.onError((err, c) => {
-    if (err.name === 'SyntaxError' && err.message.includes('JSON')) {
+    const isRawSyntaxError = err.name === 'SyntaxError' && err.message.includes('JSON');
+    const isHonoJsonError = err instanceof HTTPException && err.message === 'Malformed JSON in request body';
+
+    if (isRawSyntaxError || isHonoJsonError) {
         return c.json({
             success: false,
             error: "MALFORMED_JSON",
