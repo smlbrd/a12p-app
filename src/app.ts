@@ -44,6 +44,14 @@ app.post("/coins", zValidator("json", insertCoinSchema, (result, c) => {
 })
 
 app.onError((err, c) => {
+    if (err.name === 'SyntaxError' && err.message.includes('JSON')) {
+        return c.json({
+            success: false,
+            error: "MALFORMED_JSON",
+            details: "The request body could not be parsed as valid JSON."
+        }, 400);
+    }
+
     if (err instanceof HTTPException && err.cause instanceof ZodError) {
         return c.json({
             success: false,
@@ -52,8 +60,11 @@ app.onError((err, c) => {
         }, 400);
     }
 
-    console.error(`[Server Error]: ${err.message}`);
-    return c.json({ success: false, error: "INTERNAL_SERVER_ERROR" }, 500);
+    console.error(`[Server Error]: ${err.stack || err.message}`);
+    return c.json({
+        success: false,
+        error: "INTERNAL_SERVER_ERROR"
+    }, 500);
 });
 
 export default app;

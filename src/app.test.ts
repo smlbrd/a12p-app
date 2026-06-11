@@ -96,5 +96,11 @@ describe("POST /coins", () => {
         const res = await jsonPost("/coins", { name: 12345 });
 
         expect(res.status).toBe(400);
+
+        const data = await res.json();
+
+        expect(data.success).toBe(false);
+        expect(data.error.issues[0].path[0]).toBe("name");
+        expect(data.error.issues[0].message).toBe("Invalid input: expected string, received number");
     });
 })
