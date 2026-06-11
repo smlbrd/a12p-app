@@ -19,6 +19,18 @@ describe("GET /coins", () => {
         await seedCoins();
     })
 
+    test("should return an empty list if no coins exist", async () => {
+        await db.delete(coins);
+
+        const res = await app.request("/coins");
+
+        expect(res.status).toBe(200);
+
+        const data = await res.json();
+
+        expect(data).toEqual([]);
+    });
+
     test("should return a list of all coins", async () => {
         const res = await app.request("/coins")
 
@@ -79,4 +91,10 @@ describe("POST /coins", () => {
         expect(data.error.issues[0].path[0]).toBe("name");
         expect(data.error.issues[0].message).toBe("Invalid input: expected string, received undefined");
     })
+
+    test("should return a 400 error if name is not a string", async () => {
+        const res = await jsonPost("/coins", { name: 12345 });
+
+        expect(res.status).toBe(400);
+    });
 })
