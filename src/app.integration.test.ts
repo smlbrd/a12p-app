@@ -23,15 +23,30 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe("Global routes", () => {
+describe("Global tests", () => {
   test("GET /health should return a 200 status", async () => {
     const res = await app.request("/health")
     expect(res.status).toBe(200)
   })
 
-  test("API should return a 404 status for non-existent routes", async () => {
+  test("should return a 404 status for non-existent routes", async () => {
     const res = await app.request("/this-route-does-not-exist")
     expect(res.status).toBe(404)
+  })
+
+  test("should return a 500 error if the database catastrophically crashes", async () => {
+    vi.spyOn(db, "select").mockImplementationOnce(() => {
+      throw new Error("Database connection timed out abruptly")
+    })
+
+    const res = await app.request("/coins")
+    expect(res.status).toBe(500)
+
+    const data = await res.json()
+    expect(data).toEqual({
+      success: false,
+      error: "INTERNAL_SERVER_ERROR"
+    })
   })
 })
 
@@ -53,21 +68,6 @@ describe("GET /coins", () => {
     const data = await res.json()
     expect(data).toHaveLength(coinsData.length)
     expect(data).toMatchObject(coinsData)
-  })
-
-  test("should return a 500 error if the database catastrophically crashes", async () => {
-    vi.spyOn(db, "select").mockImplementationOnce(() => {
-      throw new Error("Database connection timed out abruptly")
-    })
-
-    const res = await app.request("/coins")
-    expect(res.status).toBe(500)
-
-    const data = await res.json()
-    expect(data).toEqual({
-      success: false,
-      error: "INTERNAL_SERVER_ERROR"
-    })
   })
 })
 
