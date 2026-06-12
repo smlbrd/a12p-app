@@ -3,23 +3,27 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "target": "esnext",
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
+
+    "rootDir": "src",
+    "outDir": "dist",
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
 
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
-
     "strict": true,
     "jsx": "react-jsx",
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "skipLibCheck": true,
-    "allowImportingTsExtensions": true
-  }
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

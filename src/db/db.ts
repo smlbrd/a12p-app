@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/node-postgres"
-import { Pool } from "pg"
 import * as schema from "./schema.ts"
+import { Pool } from "pg"
 
 const pool = new Pool({
   user: process.env.PG_USER || "test_user",

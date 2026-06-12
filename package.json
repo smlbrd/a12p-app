@@ -8,7 +8,7 @@
     "test": "vitest run",
     "coverage": "vitest run --coverage",
     "prepare": "husky",
-    "seed": "tsx src/db/run-seed.ts"
+    "seed": "tsx scripts/run-seed.ts"
   },
   "lint-staged": {
     "*.{ts,js}": [
