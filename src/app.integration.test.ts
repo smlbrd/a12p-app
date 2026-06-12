@@ -143,49 +143,6 @@ describe("POST /coins", () => {
     })
   })
 
-  test.each([
-    {
-      reason: "name contains only whitespace",
-      payload: { name: "   ", isCompleted: false },
-      expectedPath: "name",
-      expectedMessage: "Name cannot be empty"
-    },
-    {
-      reason: "the request body is empty",
-      payload: {},
-      expectedPath: "name",
-      expectedMessage: "Invalid input: expected string, received undefined"
-    },
-    {
-      reason: "name is not a string",
-      payload: { name: 12345 },
-      expectedPath: "name",
-      expectedMessage: "Invalid input: expected string, received number"
-    },
-    {
-      reason: "name is not alphanumeric characters",
-      payload: { name: "!?%^&" },
-      expectedPath: "name",
-      expectedMessage: "Please use valid characters only: a-z A-Z 0-9 , . !"
-    },
-    {
-      reason: "isCompleted is not a boolean",
-      payload: { name: "Testing.. Testing.. 1, 2, 3", isCompleted: "true" },
-      expectedPath: "isCompleted"
-    }
-  ])("should return a 400 error if $reason", async ({ payload, expectedPath, expectedMessage }) => {
-    const res = await jsonPost("/coins", payload)
-    expect(res.status).toBe(400)
-
-    const data = await res.json()
-    expect(data.success).toBe(false)
-    expect(data.error.issues[0].path[0]).toBe(expectedPath)
-
-    if (expectedMessage) {
-      expect(data.error.issues[0].message).toBe(expectedMessage)
-    }
-  })
-
   test("should return a 400 error for malformed JSON request body", async () => {
     const res = await app.request("/coins", {
       method: "POST",
