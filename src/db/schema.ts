@@ -42,24 +42,30 @@ export const coinsToDutiesRelations = relations(coinsToDuties, ({ one }) => ({
 }))
 
 export const selectCoinSchema = createSelectSchema(coins)
+export const selectDutySchema = createSelectSchema(duties)
+export const selectCoinsToDutiesSchema = createSelectSchema(coinsToDuties)
+
 export const insertCoinSchema = createInsertSchema(coins, {
   name: z
     .string()
     .trim()
-    .min(1, { message: "Name cannot be empty" })
-    .max(255, { message: "Name cannot exceed 255 characters" })
+    .min(1, { error: "Name cannot be empty" })
+    .max(255, { error: "Name cannot exceed 255 characters" })
     .regex(/^[a-zA-Z0-9 ,.!]+$/, {
-      message: "Please use valid characters only: a-z A-Z 0-9 , . !"
+      error: "Please use valid characters only: a-z A-Z 0-9 , . !"
     })
 })
 
-export const selectDutySchema = createSelectSchema(duties)
+export const insertCoinWithDutiesSchema = insertCoinSchema.extend({
+  dutyIds: z.array(z.uuid()).optional()
+})
 
-export const coinWithDutiesSchema = selectCoinSchema.extend({
+export const CoinWithDutiesSchema = selectCoinSchema.extend({
   duties: z.array(selectDutySchema)
 })
 
 export type Coin = z.infer<typeof selectCoinSchema>
 export type NewCoin = z.infer<typeof insertCoinSchema>
+export type NewCoinWithDuties = z.infer<typeof insertCoinWithDutiesSchema>
 export type Duty = z.infer<typeof selectDutySchema>
-export type CoinWithDuties = z.infer<typeof coinWithDutiesSchema>
+export type CoinWithDuties = z.infer<typeof CoinWithDutiesSchema>

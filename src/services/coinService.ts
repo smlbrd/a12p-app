@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm"
 import { db } from "../db/db.ts"
-import { type Coin, coins, type CoinWithDuties, type NewCoin } from "../db/schema.ts"
+import { type Coin, coins, coinsToDuties, type CoinWithDuties, type NewCoinWithDuties } from "../db/schema.ts"
 
 export const getAllCoins = (): Promise<Coin[]> => db.select().from(coins)
 
@@ -26,8 +26,40 @@ export async function getCoinWithDuties(coinId: string): Promise<CoinWithDuties 
   }
 }
 
-export async function createCoin(data: NewCoin): Promise<Coin | null> {
-  const [newCoin] = await db.insert(coins).values(data).onConflictDoNothing({ target: coins.name }).returning()
+export async function createCoin(data: NewCoinWithDuties): Promise<CoinWithDuties | null> {
+  return await db.transaction(async (tx) => {
+    const { dutyIds, ...coinData } = data
 
-  return newCoin ?? null
+    const [newCoin] = await tx.insert(coins).values(coinData).onConflictDoNothing({ target: coins.name }).returning()
+
+    if (!newCoin) return null
+
+    if (dutyIds && dutyIds.length > 0) {
+      const junctionRows = dutyIds.map((dutyId) => ({
+        coinId: newCoin.id,
+        dutyId
+      }))
+      await tx.insert(coinsToDuties).values(junctionRows)
+    }
+
+    const result = await tx.query.coins.findFirst({
+      where: eq(coins.id, newCoin.id),
+      with: {
+        coinsToDuties: {
+          with: {
+            duty: true
+          }
+        }
+      }
+    })
+
+    if (!result) return null
+
+    return {
+      id: result.id,
+      name: result.name,
+      isCompleted: result.isCompleted,
+      duties: result.coinsToDuties.map((cd) => cd.duty)
+    }
+  })
 }

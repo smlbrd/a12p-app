@@ -2,7 +2,7 @@ import { Hono } from "hono"
 import { zValidator } from "@hono/zod-validator"
 import { HTTPException } from "hono/http-exception"
 import { z } from "zod"
-import { insertCoinSchema } from "../db/schema.ts"
+import { insertCoinWithDutiesSchema } from "../db/schema.ts"
 import { createCoin, getAllCoins, getCoinWithDuties } from "../services/coinService.ts"
 
 const coinRoutes = new Hono()
@@ -25,15 +25,15 @@ coinRoutes.get("/:id", async (c) => {
   return c.json(coinWithDuties, 200)
 })
 
-coinRoutes.post("/", validateJson(insertCoinSchema), async (c) => {
+coinRoutes.post("/", validateJson(insertCoinWithDutiesSchema), async (c) => {
   const validatedBody = c.req.valid("json")
-  const newCoin = await createCoin(validatedBody)
+  const newCoinWithDuties = await createCoin(validatedBody)
 
-  if (!newCoin) {
+  if (!newCoinWithDuties) {
     throw new HTTPException(409, { message: "Coin already exists" })
   }
 
-  return c.json(newCoin, 201)
+  return c.json(newCoinWithDuties, 201)
 })
 
 export default coinRoutes
