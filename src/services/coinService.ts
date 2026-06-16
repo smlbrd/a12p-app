@@ -63,6 +63,13 @@ export async function updateCoin(id: string, data: PatchCoinWithDuties): Promise
       await tx.update(coins).set(coinData).where(eq(coins.id, id))
     }
 
+    if (dutyIds !== undefined) {
+      await tx.delete(coinsToDuties).where(eq(coinsToDuties.coinId, id))
+
+      const junctionRows = dutyIds.map((dutyId) => ({ coinId: id, dutyId }))
+      await tx.insert(coinsToDuties).values(junctionRows)
+    }
+
     return await getCoinWithDuties(tx, id)
   })
 }
