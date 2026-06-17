@@ -203,34 +203,34 @@ describe("POST /coins", () => {
       duties: matchDutiesArray([duty1, duty2])
     })
   })
-})
 
-test("should return a 409 error if the coin name already exists", async () => {
-  await jsonReq("POST", "/coins", { name: "Duplicate Coin" })
+  test("should return a 409 error if the coin name already exists", async () => {
+    await jsonReq("POST", "/coins", { name: "Duplicate Coin" })
 
-  const res = await jsonReq("POST", "/coins", { name: "Duplicate Coin" })
-  expect(res.status).toBe(409)
+    const res = await jsonReq("POST", "/coins", { name: "Duplicate Coin" })
+    expect(res.status).toBe(409)
 
-  const body = await res.json()
-  expect(body).toEqual({
-    success: false,
-    error: "COIN_ALREADY_EXISTS"
+    const body = await res.json()
+    expect(body).toEqual({
+      success: false,
+      error: "COIN_ALREADY_EXISTS"
+    })
   })
-})
 
-test("should return a 400 error for malformed JSON request body", async () => {
-  const res = await app.request("/coins", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: "{ invalid-json: "
-  })
-  expect(res.status).toBe(400)
+  test("should return a 400 error for malformed JSON request body", async () => {
+    const res = await app.request("/coins", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{ invalid-json: "
+    })
+    expect(res.status).toBe(400)
 
-  const body = await res.json()
-  expect(body).toEqual({
-    success: false,
-    error: "MALFORMED_JSON",
-    details: "The request body could not be parsed as valid JSON."
+    const body = await res.json()
+    expect(body).toEqual({
+      success: false,
+      error: "MALFORMED_JSON",
+      details: "The request body could not be parsed as valid JSON."
+    })
   })
 })
 
