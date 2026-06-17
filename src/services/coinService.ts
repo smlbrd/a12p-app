@@ -75,3 +75,9 @@ export async function updateCoin(id: string, data: PatchCoinWithDuties): Promise
     return await getCoinWithDuties(tx, id)
   })
 }
+
+export async function deleteCoin(id: string): Promise<void> {
+  await db.transaction(async (tx) => {
+    await tx.delete(coins).where(eq(coins.id, id))
+  })
+}

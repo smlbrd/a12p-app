@@ -3,7 +3,7 @@ import { zValidator } from "@hono/zod-validator"
 import { HTTPException } from "hono/http-exception"
 import { z } from "zod"
 import { insertCoinWithDutiesSchema, patchCoinWithDutiesSchema } from "../db/schema.ts"
-import { createCoin, getAllCoins, getCoinWithDuties, updateCoin } from "../services/coinService.ts"
+import { createCoin, deleteCoin, getAllCoins, getCoinWithDuties, updateCoin } from "../services/coinService.ts"
 import { db } from "../db/db.ts"
 
 const coinRoutes = new Hono()
@@ -48,6 +48,14 @@ coinRoutes.patch("/:id", validateJson(patchCoinWithDutiesSchema), async (c) => {
   }
 
   return c.json(updatedCoinWithDuties, 200)
+})
+
+coinRoutes.delete("/:id", zValidator("param", z.object({ id: z.uuid() })), async (c) => {
+  const { id } = c.req.valid("param")
+
+  await deleteCoin(id)
+
+  return c.body(null, 204)
 })
 
 export default coinRoutes
