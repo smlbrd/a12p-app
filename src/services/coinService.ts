@@ -75,3 +75,11 @@ export async function updateCoin(id: string, data: PatchCoinWithDuties): Promise
     return await getCoinWithDuties(tx, id)
   })
 }
+
+export async function deleteCoin(id: string): Promise<boolean> {
+  return await db.transaction(async (tx) => {
+    const result = await tx.delete(coins).where(eq(coins.id, id))
+
+    return (result?.rowCount ?? 0) > 0
+  })
+}

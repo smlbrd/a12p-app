@@ -8,11 +8,11 @@ import { Hono } from "hono"
 import { errorHandler } from "./middleware/errorHandler.ts"
 import { z } from "zod"
 
-const jsonReq = (method: "POST" | "PATCH", path: string, body: unknown) =>
+const jsonReq = (method: "POST" | "PATCH" | "DELETE", path: string, body?: unknown) =>
   app.request(path, {
     method,
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
+    body: body ? JSON.stringify(body) : null
   })
 
 beforeEach(async () => {
@@ -44,6 +44,16 @@ const matchDutiesArray = (insertedDuties: Duty[]) =>
       expect.objectContaining({ id: duty.id, number: duty.number, description: duty.description })
     )
   )
+
+const insertCoin = async (values: NewCoinWithDuties) => {
+  const [row] = await db.insert(coins).values(values).returning()
+  return row!
+}
+
+const getCoinFromDb = async (id: string) => {
+  const [row] = await db.select().from(coins).where(eq(coins.id, id)).limit(1)
+  return row!
+}
 
 describe("Global tests", () => {
   test("GET /health should return a 200 status", async () => {
@@ -135,7 +145,6 @@ describe("GET /coins/:id", () => {
     })
 
     expect(body.duties).toHaveLength(3)
-
     expect(body.duties).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: DUTY_IDS.D5, number: 5 }),
@@ -241,16 +250,6 @@ describe("PATCH /coins/:id", () => {
     await db.delete(duties)
   })
 
-  const insertCoin = async (values: NewCoinWithDuties) => {
-    const [row] = await db.insert(coins).values(values).returning()
-    return row!
-  }
-
-  const getCoinFromDb = async (id: string) => {
-    const [row] = await db.select().from(coins).where(eq(coins.id, id)).limit(1)
-    return row!
-  }
-
   test("should change the name of an existing coin", async () => {
     const coin = await insertCoin({ name: "Testing.. Testing.. 1, 2, 3" })
     const updateBody = { name: "Testing.. Testing.. 4, 5, 6", isCompleted: true }
@@ -343,13 +342,11 @@ describe("PATCH /coins/:id", () => {
 
     const body = await res.json()
     expect(body.duties).toHaveLength(3)
-    expect(body.duties).toEqual(
-      expect.arrayContaining([
-        { id: duty2.id, number: 2, description: "Test Duty 2" },
-        { id: duty3.id, number: 3, description: "Test Duty 3" },
-        { id: duty4.id, number: 4, description: "Test Duty 4" }
-      ])
-    )
+    expect(body).toMatchObject({
+      id: coin.id,
+      name: coin.name,
+      duties: matchDutiesArray([duty2, duty3, duty4])
+    })
   })
 
   test("should return a 404 error when updating a non-existent coin", async () => {
@@ -375,5 +372,26 @@ describe("PATCH /coins/:id", () => {
 
     const body = await res.json()
     expect(body).toEqual({ success: false, error: "RESOURCE_NOT_FOUND" })
+  })
+})
+
+describe("DELETE /coins/:id", () => {
+  test("should delete a coin", async () => {
+    const coin = await insertCoin({ name: "Delete This Coin" })
+
+    const res = await jsonReq("DELETE", `/coins/${coin.id}`)
+    expect(res.status).toBe(204)
+
+    const deletedCoin = await db.query.coins.findFirst({
+      where: eq(coins.id, coin.id)
+    })
+    expect(deletedCoin).toBeUndefined()
+  })
+
+  test("should return a 404 error when deleting a coin that doesn't exist", async () => {
+    const nonExistentId = "00000000-0000-0000-0000-000000000000"
+
+    const res = await jsonReq("DELETE", `/coins/${nonExistentId}`)
+    expect(res.status).toBe(404)
   })
 })
