@@ -80,8 +80,6 @@ export async function deleteCoin(id: string): Promise<boolean> {
   return await db.transaction(async (tx) => {
     const result = await tx.delete(coins).where(eq(coins.id, id))
 
-    const isRowsChanged = result?.rowCount ?? 0
-
-    return isRowsChanged > 0
+    return (result?.rowCount ?? 0) > 0
   })
 }
