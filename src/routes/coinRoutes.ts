@@ -53,7 +53,11 @@ coinRoutes.patch("/:id", validateJson(patchCoinWithDutiesSchema), async (c) => {
 coinRoutes.delete("/:id", zValidator("param", z.object({ id: z.uuid() })), async (c) => {
   const { id } = c.req.valid("param")
 
-  await deleteCoin(id)
+  const isCoinDeleted: boolean = await deleteCoin(id)
+
+  if (!isCoinDeleted) {
+    return c.json({ success: false, error: "COIN_NOT_FOUND" }, 404)
+  }
 
   return c.body(null, 204)
 })

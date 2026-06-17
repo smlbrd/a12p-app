@@ -387,4 +387,11 @@ describe("DELETE /coins/:id", () => {
     })
     expect(deletedCoin).toBeUndefined()
   })
+
+  test("should return a 404 error when deleting a coin that doesn't exist", async () => {
+    const nonExistentId = "00000000-0000-0000-0000-000000000000"
+
+    const res = await jsonReq("DELETE", `/coins/${nonExistentId}`)
+    expect(res.status).toBe(404)
+  })
 })
