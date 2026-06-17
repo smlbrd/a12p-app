@@ -346,6 +346,15 @@ describe("PATCH /coins/:id", () => {
     )
   })
 
-  // patching nonexistent coin returns 400 bad req
+  test("should return a 404 error when patching a non-existent coin", async () => {
+    const nonExistentId = "00000000-0000-0000-0000-000000000000"
+    const updateBody = { name: "Imaginary Coin" }
+
+    const res = await jsonReq("PATCH", `/coins/${nonExistentId}`, updateBody)
+    expect(res.status).toBe(404)
+
+    const body = await res.json()
+    expect(body).toEqual({ success: false, error: "COIN_NOT_FOUND" })
+  })
   // linking coin to nonexistent duty returns 400 bad req
 })

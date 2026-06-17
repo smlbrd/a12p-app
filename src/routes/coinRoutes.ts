@@ -40,7 +40,12 @@ coinRoutes.post("/", validateJson(insertCoinWithDutiesSchema), async (c) => {
 coinRoutes.patch("/:id", validateJson(patchCoinWithDutiesSchema), async (c) => {
   const id = c.req.param("id")
   const validatedBody = c.req.valid("json")
+
   const updatedCoinWithDuties = await updateCoin(id, validatedBody)
+
+  if (!updatedCoinWithDuties) {
+    return c.json({ success: false, error: "COIN_NOT_FOUND" }, 404)
+  }
 
   return c.json(updatedCoinWithDuties, 200)
 })
