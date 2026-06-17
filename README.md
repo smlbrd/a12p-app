@@ -12,7 +12,7 @@ Users can:
 Run the test data database container:
 
 ```
-docker compose up -d
+npm run up
 ```
 
 Run the tests:
