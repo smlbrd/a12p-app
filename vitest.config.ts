@@ -16,8 +16,7 @@ export default defineConfig({
         functions: 80,
         statements: 80
       },
-
-      exclude: ["**/database/schema.ts", "**/scripts/**"]
+      exclude: ["**/db/schema.ts", "**/scripts/**"]
     }
   }
 })

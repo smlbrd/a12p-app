@@ -1,13 +1,16 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import app from "./app.ts"
 import { db } from "./db/db.ts"
-import { coins, coinsToDuties, duties } from "./db/schema.ts"
+import { coins, coinsToDuties, duties, type Duty, type NewCoin, type NewCoinWithDuties } from "./db/schema.ts"
 import { COIN_IDS, coinsData, DUTY_IDS, seedCoinsAndDuties } from "./db/seeds/seedData.ts"
 import { eq } from "drizzle-orm"
+import { Hono } from "hono"
+import { errorHandler } from "./middleware/errorHandler.ts"
+import { z } from "zod"
 
-const jsonPost = (path: string, body: unknown) =>
+const jsonReq = (method: "POST" | "PATCH", path: string, body: unknown) =>
   app.request(path, {
-    method: "POST",
+    method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
   })
@@ -23,6 +26,25 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
+const seedTestDuties = async () => {
+  return db
+    .insert(duties)
+    .values([
+      { number: 1, description: "Test Duty 1" },
+      { number: 2, description: "Test Duty 2" },
+      { number: 3, description: "Test Duty 3" },
+      { number: 4, description: "Test Duty 4" }
+    ])
+    .returning()
+}
+
+const matchDutiesArray = (insertedDuties: Duty[]) =>
+  expect.arrayContaining(
+    insertedDuties.map((duty: Duty) =>
+      expect.objectContaining({ id: duty.id, number: duty.number, description: duty.description })
+    )
+  )
+
 describe("Global tests", () => {
   test("GET /health should return a 200 status", async () => {
     const res = await app.request("/health")
@@ -34,6 +56,34 @@ describe("Global tests", () => {
     expect(res.status).toBe(404)
   })
 
+  test("should catch ZodError and return formatted validation issues with a 400 status", async () => {
+    const testApp = new Hono()
+    testApp.onError(errorHandler)
+
+    testApp.get("/test-zod-error", (c) => {
+      const mockSchema = z.object({
+        coinName: z.string()
+      })
+
+      mockSchema.parse({
+        coinName: 123
+      })
+
+      return c.text("this is unreachable due to the error")
+    })
+
+    const res = await testApp.request("/test-zod-error")
+    expect(res.status).toBe(400)
+
+    const body = await res.json()
+    expect(body).toEqual({
+      success: false,
+      error: {
+        issues: [{ path: ["coinName"], message: "Invalid input: expected string, received number" }]
+      }
+    })
+  })
+
   test("should return a 500 error if the database catastrophically crashes", async () => {
     vi.spyOn(db, "select").mockImplementationOnce(() => {
       throw new Error("Database connection timed out abruptly")
@@ -42,8 +92,8 @@ describe("Global tests", () => {
     const res = await app.request("/coins")
     expect(res.status).toBe(500)
 
-    const data = await res.json()
-    expect(data).toEqual({
+    const body = await res.json()
+    expect(body).toEqual({
       success: false,
       error: "INTERNAL_SERVER_ERROR"
     })
@@ -57,17 +107,17 @@ describe("GET /coins", () => {
     const res = await app.request("/coins")
     expect(res.status).toBe(200)
 
-    const data = await res.json()
-    expect(data).toEqual([])
+    const body = await res.json()
+    expect(body).toEqual([])
   })
 
   test("should return a list of all coins", async () => {
     const res = await app.request("/coins")
     expect(res.status).toBe(200)
 
-    const data = await res.json()
-    expect(data).toHaveLength(coinsData.length)
-    expect(data).toMatchObject(coinsData)
+    const body = await res.json()
+    expect(body).toHaveLength(coinsData.length)
+    expect(body).toMatchObject(coinsData)
   })
 })
 
@@ -76,17 +126,17 @@ describe("GET /coins/:id", () => {
     const res = await app.request(`/coins/${COIN_IDS.AUTOMATE}`)
     expect(res.status).toBe(200)
 
-    const data = await res.json()
-    expect(data).toMatchObject({
+    const body = await res.json()
+    expect(body).toMatchObject({
       id: COIN_IDS.AUTOMATE,
       name: "Automate",
       isCompleted: false,
       duties: expect.any(Array)
     })
 
-    expect(data.duties).toHaveLength(3)
+    expect(body.duties).toHaveLength(3)
 
-    expect(data.duties).toEqual(
+    expect(body.duties).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: DUTY_IDS.D5, number: 5 }),
         expect.objectContaining({ id: DUTY_IDS.D7, number: 7 }),
@@ -101,43 +151,67 @@ describe("GET /coins/:id", () => {
     const res = await app.request(`/coins/${nonExistentId}`)
     expect(res.status).toBe(404)
 
-    const data = await res.json()
-    expect(data).toEqual({ success: false, error: "COIN_NOT_FOUND" })
+    const body = await res.json()
+    expect(body).toEqual({ success: false, error: "COIN_NOT_FOUND" })
   })
 })
 
 describe("POST /coins", () => {
   beforeEach(async () => {
+    await db.delete(coinsToDuties)
     await db.delete(coins)
+    await db.delete(duties)
   })
 
-  test("should add a new coin", async () => {
-    const newCoin = { name: "Testing.. Testing.. 1, 2, 3", isCompleted: false }
+  test("should add a new coin without duties", async () => {
+    const newCoin: NewCoin = { name: "Testing.. Testing.. 1, 2, 3", isCompleted: false }
 
-    const res = await jsonPost("/coins", newCoin)
+    const res = await jsonReq("POST", "/coins", newCoin)
     expect(res.status).toBe(201)
 
-    const data = await res.json()
-    expect(data).toMatchObject({
+    const body = await res.json()
+    expect(body).toMatchObject({
       id: expect.any(String),
-      ...newCoin
+      ...newCoin,
+      duties: []
     })
 
-    const [dbCoin] = await db.select().from(coins).where(eq(coins.id, data.id)).limit(1)
+    const [dbCoin] = await db.select().from(coins).where(eq(coins.id, body.id)).limit(1)
     expect(dbCoin).toMatchObject({
       id: expect.any(String),
       ...newCoin
     })
   })
 
-  test("should return a 409 error if the coin name already exists", async () => {
-    await jsonPost("/coins", { name: "Duplicate Coin" })
+  test("should add a new coin with linked duties", async () => {
+    const duties = await seedTestDuties()
+    const duty1 = duties[0]!
+    const duty2 = duties[1]!
 
-    const res = await jsonPost("/coins", { name: "Duplicate Coin" })
+    const newCoinPayload: NewCoinWithDuties = {
+      name: "Dutiful Coin",
+      dutyIds: [duty1.id, duty2.id]
+    }
+
+    const res = await jsonReq("POST", "/coins", newCoinPayload)
+    expect(res.status).toBe(201)
+
+    const body = await res.json()
+    expect(body).toMatchObject({
+      id: expect.any(String),
+      name: newCoinPayload.name,
+      duties: matchDutiesArray([duty1, duty2])
+    })
+  })
+
+  test("should return a 409 error if the coin name already exists", async () => {
+    await jsonReq("POST", "/coins", { name: "Duplicate Coin" })
+
+    const res = await jsonReq("POST", "/coins", { name: "Duplicate Coin" })
     expect(res.status).toBe(409)
 
-    const data = await res.json()
-    expect(data).toEqual({
+    const body = await res.json()
+    expect(body).toEqual({
       success: false,
       error: "COIN_ALREADY_EXISTS"
     })
@@ -151,11 +225,155 @@ describe("POST /coins", () => {
     })
     expect(res.status).toBe(400)
 
-    const data = await res.json()
-    expect(data).toEqual({
+    const body = await res.json()
+    expect(body).toEqual({
       success: false,
       error: "MALFORMED_JSON",
       details: "The request body could not be parsed as valid JSON."
     })
+  })
+})
+
+describe("PATCH /coins/:id", () => {
+  beforeEach(async () => {
+    await db.delete(coinsToDuties)
+    await db.delete(coins)
+    await db.delete(duties)
+  })
+
+  const insertCoin = async (values: NewCoinWithDuties) => {
+    const [row] = await db.insert(coins).values(values).returning()
+    return row!
+  }
+
+  const getCoinFromDb = async (id: string) => {
+    const [row] = await db.select().from(coins).where(eq(coins.id, id)).limit(1)
+    return row!
+  }
+
+  test("should change the name of an existing coin", async () => {
+    const coin = await insertCoin({ name: "Testing.. Testing.. 1, 2, 3" })
+    const updateBody = { name: "Testing.. Testing.. 4, 5, 6", isCompleted: true }
+
+    const res = await jsonReq("PATCH", `/coins/${coin.id}`, updateBody)
+
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ id: coin.id, name: updateBody.name })
+
+    const dbCoin = await getCoinFromDb(coin.id)
+    expect(dbCoin).toMatchObject({ id: coin.id, ...updateBody })
+  })
+
+  test("should gracefully handle a patch request with no new information", async () => {
+    const coin = await insertCoin({ name: "Testing.. Testing.. 1, 2, 3", isCompleted: false })
+    const updateBody = { name: "Testing.. Testing.. 1, 2, 3", isCompleted: false }
+
+    const res = await jsonReq("PATCH", `/coins/${coin.id}`, updateBody)
+
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ id: coin.id, name: updateBody.name })
+
+    const dbCoin = await getCoinFromDb(coin.id)
+    expect(dbCoin).toMatchObject({ id: coin.id, ...updateBody })
+  })
+
+  test("should update duties linked to an existing coin", async () => {
+    const duties = await seedTestDuties()
+    const duty1 = duties[0]!
+    const duty2 = duties[1]!
+
+    const coin = await insertCoin({ name: "Testing Duties" })
+
+    const updateBody = {
+      dutyIds: [duty1.id, duty2.id]
+    }
+
+    const res = await jsonReq("PATCH", `/coins/${coin.id}`, updateBody)
+    expect(res.status).toBe(200)
+
+    const body = await res.json()
+    expect(body).toMatchObject({
+      id: coin.id,
+      duties: matchDutiesArray([duty1, duty2])
+    })
+  })
+
+  test("should return a 400 error when violating validation schema (e.g. minimum name length)", async () => {
+    const coin = await insertCoin({ name: "Valid Coin" })
+
+    const updateBody = { name: "" }
+
+    const res = await jsonReq("PATCH", `/coins/${coin.id}`, updateBody)
+    expect(res.status).toBe(400)
+
+    const body = await res.json()
+    expect(body.error.issues).toContainEqual(
+      expect.objectContaining({
+        path: ["name"],
+        message: "Name cannot be empty"
+      })
+    )
+  })
+
+  test("should clear duties linked to an existing coin when receiving [] as duties patch", async () => {
+    const duties = await seedTestDuties()
+    const duty1 = duties[0]!
+    const duty2 = duties[1]!
+
+    const coin = await insertCoin({ name: "Testing Duties", dutyIds: [duty1.id, duty2.id] })
+
+    const res = await jsonReq("PATCH", `/coins/${coin.id}`, { dutyIds: [] })
+    expect(res.status).toBe(200)
+
+    const body = await res.json()
+    expect(body.duties).toHaveLength(0)
+  })
+
+  test("should accommodate duplication between existing duties and patch body", async () => {
+    const duties = await seedTestDuties()
+    const duty1 = duties[0]!
+    const duty2 = duties[1]!
+    const duty3 = duties[2]!
+    const duty4 = duties[3]!
+
+    const coin = await insertCoin({ name: "Testing Duties", dutyIds: [duty1.id, duty2.id, duty3.id] })
+
+    const res = await jsonReq("PATCH", `/coins/${coin.id}`, { dutyIds: [duty2.id, duty3.id, duty4.id] })
+    expect(res.status).toBe(200)
+
+    const body = await res.json()
+    expect(body.duties).toHaveLength(3)
+    expect(body.duties).toEqual(
+      expect.arrayContaining([
+        { id: duty2.id, number: 2, description: "Test Duty 2" },
+        { id: duty3.id, number: 3, description: "Test Duty 3" },
+        { id: duty4.id, number: 4, description: "Test Duty 4" }
+      ])
+    )
+  })
+
+  test("should return a 404 error when updating a non-existent coin", async () => {
+    const nonExistentId = "00000000-0000-0000-0000-000000000000"
+    const updateBody = { name: "Imaginary Coin" }
+
+    const res = await jsonReq("PATCH", `/coins/${nonExistentId}`, updateBody)
+    expect(res.status).toBe(404)
+
+    const body = await res.json()
+    expect(body).toEqual({ success: false, error: "COIN_NOT_FOUND" })
+  })
+
+  test("should return a 404 error when updating a coin with a non-existent duty", async () => {
+    const duties = await seedTestDuties()
+    const duty1 = duties[0]!
+    const duty2 = duties[1]!
+
+    const coin = await insertCoin({ name: "Testing Duties", dutyIds: [duty1.id, duty2.id] })
+
+    const res = await jsonReq("PATCH", `/coins/${coin.id}`, { dutyIds: ["00000000-0000-0000-0000-000000000000"] })
+    expect(res.status).toBe(404)
+
+    const body = await res.json()
+    expect(body).toEqual({ success: false, error: "RESOURCE_NOT_FOUND" })
   })
 })
