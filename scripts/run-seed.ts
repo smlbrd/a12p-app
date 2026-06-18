@@ -1,7 +1,9 @@
-import { seedCoinsAndDuties } from "../src/db/seeds/seedData.ts"
+import { deleteCoinsAndDuties, seedCoinsAndDuties } from "../src/db/seeds/seedData.ts"
 import { pool } from "../src/db/db.ts"
 
 try {
+  console.log("🔥 Clearing database...")
+  await deleteCoinsAndDuties()
   console.log("🌱 Seeding coins...")
   await seedCoinsAndDuties()
   console.log("✅ Database seeded successfully!")
