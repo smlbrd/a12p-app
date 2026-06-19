@@ -13,6 +13,7 @@ env:
   AWS_REGION: eu-west-2
   AWS_ROLE_ARN: arn:aws:iam::261219435789:role/a12p-wh-gha-deploy-role
   ECR_REPOSITORY: a12p-wh-api-repo
+  TF_VAR_database_url: ${{ secrets.DATABASE_URL }}
 
 jobs:
   deploy:
