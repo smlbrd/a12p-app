@@ -31,7 +31,7 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
 }
 
 resource "aws_lambda_function" "api" {
-  function_name = "serverless-api"
+  function_name = "a12p-wh-serverless-api"
 
   role = aws_iam_role.lambda_exec.arn
 
