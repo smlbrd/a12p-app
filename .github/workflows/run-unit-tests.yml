@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 env:
-  TEST_DB_CONTAINER: postgresql://test_user:test_password@localhost:5433/coin_test_db
+  TEST_DB_CONTAINER: postgresql://test_user:test_password@localhost:5433/test_db
 
 jobs:
   run-unit-tests:
@@ -30,7 +30,7 @@ jobs:
 
       - name: Wait for PostgreSQL to be ready
         run: |
-          until docker compose exec -T test_db pg_isready -U test_user -d coin_test_db; do
+          until docker compose exec -T test_db pg_isready -U test_user -d test_db; do
           echo "Waiting for database to accept connections..."
           sleep 1
           done
