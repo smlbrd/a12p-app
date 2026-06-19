@@ -52,3 +52,9 @@ export async function seedCoinsAndDuties() {
   await db.insert(duties).values(dutiesData).onConflictDoNothing({ target: duties.id })
   await db.insert(coinsToDuties).values(linksData).onConflictDoNothing()
 }
+
+export async function deleteCoinsAndDuties() {
+  await db.delete(coinsToDuties)
+  await db.delete(duties)
+  await db.delete(coins)
+}
