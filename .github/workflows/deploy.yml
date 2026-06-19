@@ -32,11 +32,6 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Run Database Migrations
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npx drizzle-kit migrate
-
       - name: Build and Bundle API
         run: |
           npx esbuild src/lambda.ts --bundle --platform=node --target=node22 --outfile=dist/index.js
@@ -70,6 +65,11 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Run Database Migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: NODE_OPTIONS="--unhandled-rejections=strict" npx drizzle-kit migrate
 
       - name: Terraform Plan
         run: terraform plan -var="image_tag=${{ github.sha }}" -auto-approve
