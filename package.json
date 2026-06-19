@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "build": "esbuild src/lambda.ts --bundle --platform=node --target=node24 --external:pg-native --outfile=dist/index.js",
     "coverage": "vitest run --coverage",
     "dev": "tsx watch src/server.ts",
     "lint": "eslint .",
@@ -38,6 +39,7 @@
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
     "drizzle-zod": "^0.8.3",
+    "esbuild": "^0.28.1",
     "eslint": "^9.39.4",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",

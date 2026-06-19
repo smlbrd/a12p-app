@@ -1,4 +1,4 @@
-name: Unit Tests / Code Coverage
+name: Run Unit Tests
 
 on:
   pull_request:
@@ -27,10 +27,10 @@ jobs:
 
       - name: Wait for PostgreSQL to be ready
         run: |
-            until docker compose exec -T test_db pg_isready -U test_user -d coin_test_db; do
-            echo "Waiting for database to accept connections..."
-            sleep 1
-            done
+          until docker compose exec -T test_db pg_isready -U test_user -d coin_test_db; do
+          echo "Waiting for database to accept connections..."
+          sleep 1
+          done
 
       - name: Sync Database Schema
         run: npx drizzle-kit push

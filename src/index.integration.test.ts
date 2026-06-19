@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
-import app from "./app.ts"
+import app from "./index.ts"
 import { db } from "./db/db.ts"
 import { coins, coinsToDuties, duties, type Duty, type NewCoin, type NewCoinWithDuties } from "./db/schema.ts"
 import { COIN_IDS, coinsData, DUTY_IDS, seedCoinsAndDuties } from "./db/seeds/seedData.ts"
