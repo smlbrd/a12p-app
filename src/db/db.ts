@@ -2,18 +2,17 @@ import { drizzle } from "drizzle-orm/node-postgres"
 import * as schema from "./schema.ts"
 import { Pool } from "pg"
 
-const isProduction = process.env.NODE_ENV === "production"
+const DEFAULT_DATABASE_URL = "postgresql://test_user:test_password@localhost:5433/test_db"
+const dbUrl = process.env.DATABASE_URL || DEFAULT_DATABASE_URL
+
+const isLocalDatabase = dbUrl.includes("localhost") || dbUrl.includes("127.0.0.1")
 
 const pool = new Pool({
-  user: process.env.PG_USER || "test_user",
-  password: process.env.DB_PASSWORD || "test_password",
-  host: process.env.PG_HOST || "localhost",
-  port: process.env.PG_PORT ? Number.parseInt(process.env.PG_PORT, 10) : 5433,
-  database: process.env.DB_NAME || "test_db",
-  max: isProduction ? 1 : 10,
+  connectionString: dbUrl,
+  max: 1,
   idleTimeoutMillis: 15000,
   connectionTimeoutMillis: 5000,
-  ssl: isProduction ? { rejectUnauthorized: false } : undefined
+  ssl: isLocalDatabase ? undefined : { rejectUnauthorized: false }
 })
 
 export const db = drizzle(pool, { schema })
