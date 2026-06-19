@@ -2,8 +2,10 @@ import { deleteCoinsAndDuties, seedCoinsAndDuties } from "../src/db/seeds/seedDa
 import { pool } from "../src/db/db.ts"
 
 try {
-  console.log("🔥 Clearing database...")
-  await deleteCoinsAndDuties()
+  if (process.env.NODE_ENV !== "production") {
+    console.log("🔥 Clearing database...")
+    await deleteCoinsAndDuties()
+  }
   console.log("🌱 Seeding coins...")
   await seedCoinsAndDuties()
   console.log("✅ Database seeded successfully!")

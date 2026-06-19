@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import app from "./index.ts"
 import { db } from "./db/db.ts"
 import { coins, coinsToDuties, duties, type Duty, type NewCoin, type NewCoinWithDuties } from "./db/schema.ts"
-import { COIN_IDS, coinsData, DUTY_IDS, seedCoinsAndDuties } from "./db/seeds/seedData.ts"
+import { COIN_IDS, coinsData, deleteCoinsAndDuties, DUTY_IDS, seedCoinsAndDuties } from "./db/seeds/seedData.ts"
 import { eq } from "drizzle-orm"
 import { Hono } from "hono"
 import { errorHandler } from "./middleware/errorHandler.ts"
@@ -16,9 +16,7 @@ const jsonReq = (method: "POST" | "PATCH" | "DELETE", path: string, body?: unkno
   })
 
 beforeEach(async () => {
-  await db.delete(coinsToDuties)
-  await db.delete(duties)
-  await db.delete(coins)
+  await deleteCoinsAndDuties()
   await seedCoinsAndDuties()
 })
 

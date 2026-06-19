@@ -34,7 +34,7 @@ jobs:
 
       - name: Build and Bundle API
         run: |
-          npx esbuild src/lambda.ts --bundle --platform=node --target=node24 --outfile=dist/index.js
+          npx esbuild src/lambda.ts --bundle --platform=node --target=node24 --outfile=dist/index.js  
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
@@ -62,9 +62,20 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .  
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG  
 
       - name: Terraform Apply
         run: terraform apply -var="image_tag=${{ github.sha }}" -auto-approve
         working-directory: ./terraform
+
+      - name: Push Database Schema
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx drizzle-kit push
+
+      - name: Run Database Seeds
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NODE_ENV: production
+        run: npx tsx scripts/run-seed.ts
