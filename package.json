@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "esbuild src/lambda.ts --bundle --platform=node --target=node24 --external:pg-native --outfile=dist/index.js",
+    "build": "esbuild src/lambda.ts --bundle --minify --platform=node --target=node24 --outfile=dist/index.js --define:process.env.NODE_ENV=\\\"production\\\"",
     "coverage": "vitest run --coverage",
-    "dev": "tsx watch src/server.ts",
+    "dev": "tsx watch --env-file=.env src/server.ts",
     "lint": "eslint .",
     "prepare": "husky",
     "db:seed:local": "tsx --env-file=.env scripts/run-seed.ts",
-    "db:seed:prod": "node --env-file=.env.production ./node_modules/drizzle-kit/bin.cjs push && tsx --env-file=.env.production scripts/run-seed.ts",
+    "db:seed:prod": "node --env-file=.env.prod ./node_modules/drizzle-kit/bin.cjs push && tsx --env-file=.env.prod scripts/run-seed.ts",
     "test": "vitest run",
     "up": "docker compose up -d"
   },

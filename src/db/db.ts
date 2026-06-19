@@ -3,13 +3,14 @@ import * as schema from "./schema.ts"
 import { Pool } from "pg"
 
 const isProduction = process.env.NODE_ENV === "production"
+const port = process.env.PG_PORT ? Number.parseInt(process.env.PG_PORT, 10) : 5433
 
 const pool = new Pool({
-  user: process.env.PG_USER || "test_user",
-  password: process.env.DB_PASSWORD || "test_password",
-  host: process.env.PG_HOST || "localhost",
-  port: process.env.PG_PORT ? Number.parseInt(process.env.PG_PORT, 10) : 5433,
-  database: process.env.DB_NAME || "test_db",
+  user: process.env.PG_USER,
+  password: process.env.DB_PASSWORD,
+  host: process.env.PG_HOST,
+  port: port,
+  database: process.env.DB_NAME,
   max: isProduction ? 1 : 10,
   idleTimeoutMillis: 15000,
   connectionTimeoutMillis: 5000,
