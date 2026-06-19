@@ -66,39 +66,14 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Test Raw Database Connection
+      - name: Push Database Schema
         env:
           PG_HOST: ${{ secrets.PG_HOST }}
           PG_USER: ${{ secrets.PG_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_PORT: ${{ secrets.DB_PORT }}
-        run: |
-          node -e "
-          const { Client } = require('pg');
-          const client = new Client({ 
-            host: process.env.PG_HOST,
-            port: Number(process.env.DB_PORT),
-            user: process.env.PG_USER,
-            password: process.env.DB_PASSWORD,
-            database: process.env.DB_NAME,
-            ssl: { rejectUnauthorized: false },
-            connectionTimeoutMillis: 5000 
-          });
-          console.log('Attempting to connect...');
-          client.connect()
-            .then(() => { console.log('🚀 Connection successful!'); client.end(); })
-            .catch(err => { console.error('❌ ERROR:', err.message); process.exit(1); });
-          "
-
-      - name: Run Database Migrations
-        env:
-          PG_HOST: ${{ secrets.PG_HOST }}
-          PG_USER: ${{ secrets.PG_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-        run: npx drizzle-kit migrate
+        run: npx drizzle-kit push
 
       - name: Terraform Plan
         run: terraform plan -var="image_tag=${{ github.sha }}" -auto-approve
