@@ -68,8 +68,11 @@ jobs:
 
       - name: Run Database Migrations
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NODE_TLS_REJECT_UNAUTHORIZED: "0"
+          PG_HOST: ${{ secrets.PG_HOST }}
+          PG_USER: ${{ secrets.PG_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_PORT: ${{ secrets.DB_PORT }}
         run: npx drizzle-kit migrate
 
       - name: Terraform Plan
