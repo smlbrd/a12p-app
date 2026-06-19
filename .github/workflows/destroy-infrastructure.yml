@@ -1,10 +1,7 @@
-name: Deploy
+name: Destroy Infrastructure
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
 
 permissions:
   id-token: write
@@ -17,7 +14,7 @@ env:
   TF_VAR_database_url: ${{ secrets.DATABASE_URL }}
 
 jobs:
-  deploy:
+  destroy:
     runs-on: ubuntu-latest
 
     steps:
@@ -50,27 +47,6 @@ jobs:
         run: terraform init
         working-directory: ./terraform
 
-      - name: Provision ECR Repository
-        run: terraform apply -target=aws_ecr_repository.api -var="image_tag=initial" -auto-approve
+      - name: Terraform Destroy
+        run: terraform destroy -var="image_tag=${{ github.sha }}" -auto-approve
         working-directory: ./terraform
-
-      - name: Log in to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build, Tag, and Push Docker Image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .  
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG  
-
-      - name: Terraform Apply
-        run: terraform apply -var="image_tag=${{ github.sha }}" -auto-approve
-        working-directory: ./terraform
-
-      - name: Push Database Schema
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npx drizzle-kit push
