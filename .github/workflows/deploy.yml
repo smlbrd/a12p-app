@@ -1,11 +1,9 @@
 name: Deploy
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
-      - setup-infra
 
 permissions:
   id-token: write
@@ -66,15 +64,6 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Push Database Schema
-        env:
-          PG_HOST: ${{ secrets.PG_HOST }}
-          PG_USER: ${{ secrets.PG_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-        run: npx drizzle-kit push
-
-      - name: Terraform plan
-        run: terraform plan -var="image_tag=${{ github.sha }}"
+      - name: Terraform Apply
+        run: terraform apply -var="image_tag=${{ github.sha }}" -auto-approve
         working-directory: ./terraform
