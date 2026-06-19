@@ -14,3 +14,6 @@ coverage/
 # Environment varialbes
 .env
 .env.*
+
+# Terraform
+*.tfvars

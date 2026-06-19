@@ -1,8 +1,3 @@
-variable "image_tag" {
-  type        = string
-  description = "The Docker image tag to deploy"
-}
-
 resource "aws_ecr_repository" "api" {
   name                 = "a12p-wh-api-repo"
   image_tag_mutability = "MUTABLE"
@@ -44,7 +39,8 @@ resource "aws_lambda_function" "api" {
 
   environment {
     variables = {
-      NODE_ENV = "production"
+      NODE_ENV     = "production"
+      DATABASE_URL = var.database_url
     }
   }
 }
