@@ -4,6 +4,9 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  TEST_DB_CONTAINER: postgresql://test_user:test_password@localhost:5433/test_db
+
 jobs:
   check-code-coverage:
     name: Check Code Coverage
@@ -34,6 +37,10 @@ jobs:
 
       - name: Sync Database Schema
         run: npx drizzle-kit push
+        env:
+          DATABASE_URL: ${{ env.TEST_DB_CONTAINER }}
 
       - name: Check code coverage
         run: npx vitest run --coverage
+        env:
+          DATABASE_URL: ${{ env.TEST_DB_CONTAINER }}
