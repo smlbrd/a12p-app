@@ -40,7 +40,6 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
 
-
       - name: Authenticate to AWS via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -66,6 +65,28 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Test Raw Database Connection
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          node -e "
+          const { Client } = require('pg');
+          const client = new Client({ 
+            connectionString: process.env.DATABASE_URL,
+            connectionTimeoutMillis: 5000 
+          });
+          console.log('Attempting to connect to the database...');
+          client.connect()
+            .then(() => { 
+              console.log('🚀 Connection successful!'); 
+              client.end(); 
+            })
+            .catch(err => { 
+              console.error('❌ CONNECTION FAILED ERROR DETAILS:\n', err); 
+              process.exit(1); 
+            });
+          "
 
       - name: Run Database Migrations
         env:
