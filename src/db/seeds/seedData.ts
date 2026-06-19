@@ -27,12 +27,41 @@ export const coinsData = [
 ]
 
 export const dutiesData = [
-  { id: DUTY_IDS.D5, number: 5, description: "Build and operate a Continuous Integration (CI) capability..." },
-  { id: DUTY_IDS.D7, number: 7, description: "Provision cloud infrastructure using APIs..." },
-  { id: DUTY_IDS.D8, number: 8, description: "Evolve and define architecture..." },
-  { id: DUTY_IDS.D9, number: 9, description: "Apply leading security practices throughout the SDLC..." },
-  { id: DUTY_IDS.D10, number: 10, description: "Implement a good coverage of monitoring..." },
-  { id: DUTY_IDS.D11, number: 11, description: "Keep up with cutting edge by committing to continual training..." }
+  {
+    id: DUTY_IDS.D5,
+    number: 5,
+    description:
+      "Build and operate a Continuous Integration (CI) capability, employing version control of source code and related artefacts"
+  },
+  {
+    id: DUTY_IDS.D7,
+    number: 7,
+    description:
+      "Provision cloud infrastructure using APIs, continually improve infrastructure-as-code, considering use of industry leading technologies as they become available (e.g. Serverless, Containers)"
+  },
+  {
+    id: DUTY_IDS.D8,
+    number: 8,
+    description:
+      "Evolve and define architecture, utilising the knowledge and experience of the team to design in an optimal user experience, scalability, security, high availability and optimal performance"
+  },
+  {
+    id: DUTY_IDS.D9,
+    number: 9,
+    description: "Apply leading security practices throughout the Software Development Lifecycle (SDLC)"
+  },
+  {
+    id: DUTY_IDS.D10,
+    number: 10,
+    description:
+      "Implement a good coverage of monitoring (metrics, logs), ensuring that alerts are visible, tuneable and actionable"
+  },
+  {
+    id: DUTY_IDS.D11,
+    number: 11,
+    description:
+      "Keep up with cutting edge by committing to continual training and development - utilise web resources for self-learning; horizon scanning; active membership of professional bodies such as Meetup Groups; subscribe to relevant publications"
+  }
 ]
 
 export const linksData = [
