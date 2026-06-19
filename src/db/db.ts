@@ -5,15 +5,11 @@ import { Pool } from "pg"
 const isProduction = process.env.NODE_ENV === "production"
 
 const pool = new Pool({
-  ...(process.env.DATABASE_URL
-    ? { connectionString: process.env.DATABASE_URL }
-    : {
-        user: process.env.PG_USER || "test_user",
-        password: process.env.DB_PASSWORD || "test_password",
-        host: process.env.PG_HOST || "localhost",
-        port: process.env.PG_PORT ? Number.parseInt(process.env.PG_PORT, 10) : 5433,
-        database: process.env.DB_NAME || "test_db"
-      }),
+  user: process.env.PG_USER || "test_user",
+  password: process.env.DB_PASSWORD || "test_password",
+  host: process.env.PG_HOST || "localhost",
+  port: process.env.PG_PORT ? Number.parseInt(process.env.PG_PORT, 10) : 5433,
+  database: process.env.DB_NAME || "test_db",
   max: isProduction ? 1 : 10,
   idleTimeoutMillis: 15000,
   connectionTimeoutMillis: 5000,
