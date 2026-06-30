@@ -12,11 +12,11 @@ This API supports full CRUD (Create, Read, Update, Delete) operations for coins:
 - Create a coin: `POST /coins`
     - Note: Validation prevents duplicate coin names.
 - Update a coin: `PATCH /coins/:id`
-  Valid updates:
-    - Name
-    - Description
-    - Completion Status
-    - Linked Duties
+    - Valid updates:
+        - Name
+        - Description
+        - Completion Status
+        - Linked Duties
 - Delete a coin: `DELETE /coins/:id`
 
 ## Getting Started
@@ -46,7 +46,7 @@ npm run up
 
 ### Development
 
-A local version of the API can be run using this command:
+Run a local version of the API:
 
 ```bash
 npm run dev
