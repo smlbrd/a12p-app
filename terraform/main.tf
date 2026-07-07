@@ -1,6 +1,6 @@
 resource "aws_ecr_repository" "api" {
   name                 = "a12p-wh-api-repo"
-  image_tag_mutability = "MUTABLE"
+  image_tag_mutability = "IMMUTABLE"
 
   image_scanning_configuration {
     scan_on_push = true
@@ -82,6 +82,6 @@ resource "aws_lambda_permission" "apigw" {
 }
 
 output "api_endpoint" {
-  description = "Your secure, rate-limited public API endpoint"
+  description = "Public API endpoint"
   value       = aws_apigatewayv2_stage.default.invoke_url
 }
