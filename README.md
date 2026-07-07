@@ -1,6 +1,6 @@
 # Apprenticeship Coin API
 
-This is a RESTful API designed to manage apprenticeship coins and their associated duties.
+This is a RESTful API designed to manage apprenticeship coins, their completion status and their associated duties.
 
 ## Features
 
