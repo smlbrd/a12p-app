@@ -35,10 +35,8 @@ jobs:
           sleep 1
           done
 
-      - name: Set up Database (Migrate & Seed)
-        run: |
-          npm run db:migrate:local
-          npm run db:seed:local
+      - name: Sync Database Schema
+        run: npx drizzle-kit push
         env:
           DATABASE_URL: ${{ env.TEST_DB_CONTAINER }}
 
