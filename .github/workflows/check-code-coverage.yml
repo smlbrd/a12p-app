@@ -37,8 +37,8 @@ jobs:
 
       - name: Set up Database (Migrate & Seed)
         run: |
-          npm db:migrate:local
-          npm db:seed:local
+          npm run db:migrate:local
+          npm run db:seed:local
         env:
           DATABASE_URL: ${{ env.TEST_DB_CONTAINER }}
 
