@@ -10,7 +10,7 @@ This API supports full CRUD (Create, Read, Update, Delete) operations for coins:
 - Get details of a specific coin: `GET /coins/:id`
     - Includes any linked duties
 - Create a coin: `POST /coins`
-    - Note: Validation prevents duplicate coin names.
+    - Note: Validation prevents duplicate or malformed coin names.
 - Update a coin: `PATCH /coins/:id`
     - Valid updates:
         - Name
