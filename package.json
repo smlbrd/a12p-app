@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "prepare": "husky",
     "db:seed:local": "tsx --env-file=.env scripts/run-seed.ts",
-    "db:seed:prod": "node --env-file=.env.production ./node_modules/drizzle-kit/bin.cjs push && tsx --env-file=.env.production scripts/run-seed.ts",
+    "db:seed:prod": "tsx --env-file=.env.production scripts/run-seed.ts",
     "test": "vitest run",
     "up": "docker compose up -d"
   },

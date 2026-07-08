@@ -13,7 +13,7 @@ coverage/
 
 # Environment varialbes
 .env
-.env.*
+.env.production
 
 # Terraform
 *.tfvars
