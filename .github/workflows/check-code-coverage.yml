@@ -37,8 +37,8 @@ jobs:
 
       - name: Set up Database (Migrate & Seed)
         run: |
-          npx drizzle-kit push
-          npx tsx scripts/run-seed.ts
+          npm db:migrate:local
+          npm db:seed:local
         env:
           DATABASE_URL: ${{ env.TEST_DB_CONTAINER }}
 
