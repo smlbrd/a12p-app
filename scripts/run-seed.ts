@@ -1,5 +1,5 @@
-import { deleteCoinsAndDuties, seedCoinsAndDuties } from "../src/db/seeds/seedData.ts"
-import { pool } from "../src/db/db.ts"
+import { deleteCoinsAndDuties, seedCoinsAndDuties } from "../app/db/seeds/seedData.ts"
+import { pool } from "../app/db/db.ts"
 
 try {
   if (process.env.NODE_ENV !== "production") {

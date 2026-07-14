@@ -5,7 +5,7 @@
     "target": "esnext",
     "types": ["node"],
 
-    "rootDir": "src",
+    "rootDir": "app",
     "outDir": "dist",
     "sourceMap": true,
     "declaration": true,
@@ -24,6 +24,6 @@
     "moduleDetection": "force",
     "skipLibCheck": true
   },
-  "include": ["src/**/*"],
+  "include": ["app/**/*"],
   "exclude": ["node_modules", "dist"]
 }
