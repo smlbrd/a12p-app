@@ -35,7 +35,7 @@ jobs:
 
       - name: Build and Bundle API
         run: |
-          npx esbuild src/lambda.ts --bundle --platform=node --target=node24 --outfile=dist/index.js  
+          npx esbuild app/lambda.ts --bundle --platform=node --target=node24 --outfile=dist/index.js  
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
