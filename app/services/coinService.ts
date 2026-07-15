@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm"
+import { asc, eq } from "drizzle-orm"
 import { db } from "../db/db.ts"
 import {
   type Coin,
@@ -11,7 +11,7 @@ import {
 
 type TransactionClient = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
-export const getAllCoins = (): Promise<Coin[]> => db.select().from(coins)
+export const getAllCoins = (): Promise<Coin[]> => db.select().from(coins).orderBy(asc(coins.name))
 
 export async function getCoinWithDuties(
   client: typeof db | TransactionClient,

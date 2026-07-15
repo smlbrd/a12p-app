@@ -1,19 +1,34 @@
+import { createRoute } from "honox/factory"
 import { getAllCoins } from "../services/coinService.ts"
 
-export default async function CoinsDashboard() {
+export default createRoute(async (c) => {
   const coins = await getAllCoins()
 
-  return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Coins Dashboard</h1>
-      <div className="grid gap-4 md:grid-cols-3">
-        {coins.map((coin) => (
-          <div key={coin.id} className="p-4 bg-slate-800 rounded-lg border border-slate-700">
-            <h2 className="text-lg font-bold">{coin.name}</h2>
-            <p className="text-slate-400 font-mono uppercase">{coin.isCompleted}</p>
-          </div>
-        ))}
+  return c.render(
+    <div className="space-y-6">
+      <div className="border-b border-slate-200 pb-5">
+        <h1>Coins Dashboard</h1>
       </div>
+
+      {coins.length === 0 ? (
+        <p className="text-slate-500 text-sm py-4">No coins available.</p>
+      ) : (
+        <div className="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100 overflow-hidden shadow-sm">
+          {coins.map((coin) => (
+            <div key={coin.id} data-testid="coin-row" className="p-6">
+              <div className="flex flex-col justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div>
+                    <h2 className="text-base font-semibold">
+                      <a href={`/coins/${coin.id}`}>{coin.name}</a>
+                    </h2>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
-}
+})

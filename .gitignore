@@ -8,10 +8,13 @@ node_modules/
 dist/
 *.tsbuildinfo
 
-# Vitest artifacts
+# Vitest
 coverage/
 
-# Environment varialbes
+# Playwright
+test-results
+
+# Environment variables
 .env
 .env.production
 

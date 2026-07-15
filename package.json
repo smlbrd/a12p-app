@@ -29,6 +29,7 @@
   "dependencies": {
     "@hono/node-server": "^2.0.4",
     "@hono/zod-validator": "^0.8.0",
+    "@playwright/test": "^1.61.1",
     "drizzle-orm": "^0.45.2",
     "drizzle-zod": "^0.8.3",
     "hono": "^4.12.25",
@@ -39,10 +40,11 @@
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@hono/vite-build": "^1.11.1",
+    "@tailwindcss/vite": "^4.3.2",
     "@types/node": "^25.9.2",
     "@types/pg": "^8.20.0",
     "@vitest/coverage-v8": "^4.1.8",
-    "drizzle-kit": "^0.31.10",
+    "drizzle-kit": "^0.18.1",
     "drizzle-orm": "^0.45.2",
     "drizzle-zod": "^0.8.3",
     "esbuild": "^0.28.1",
@@ -51,6 +53,7 @@
     "lint-staged": "^16.4.0",
     "pg": "^8.21.0",
     "prettier": "^3.8.4",
+    "tailwindcss": "^4.3.2",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.0",
