@@ -16,11 +16,12 @@ RUN npm run build
 FROM public.ecr.aws/lambda/nodejs:24
 WORKDIR ${LAMBDA_TASK_ROOT}
 
-# Copy production dependencies (or just the entire built node_modules)
-COPY --from=builder /app/node_modules ./node_modules
+# Copy production dependencies
+COPY package*.json ./
+RUN npm ci --only=production
 
 # Copy the built server code AND the built static assets
 COPY --from=builder /app/dist ./dist
 
 # Point AWS Lambda to your entry handler
-CMD ["dist/lambda.handler"]
+CMD ["dist/index.handler"]
