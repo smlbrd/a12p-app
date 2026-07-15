@@ -1,15 +1,15 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
-import app from "./index.ts"
-import { db } from "./db/db.ts"
-import { coins, coinsToDuties, duties, type Duty, type NewCoin, type NewCoinWithDuties } from "./db/schema.ts"
-import { COIN_IDS, coinsData, deleteCoinsAndDuties, DUTY_IDS, seedCoinsAndDuties } from "./db/seeds/seedData.ts"
+import app from "../../server.ts"
+import { db } from "../../db/db.ts"
+import { coins, coinsToDuties, duties, type Duty, type NewCoin, type NewCoinWithDuties } from "../../db/schema.ts"
+import { COIN_IDS, coinsData, deleteCoinsAndDuties, DUTY_IDS, seedCoinsAndDuties } from "../../db/seeds/seedData.ts"
 import { eq } from "drizzle-orm"
 import { Hono } from "hono"
-import { errorHandler } from "./middleware/errorHandler.ts"
+import { errorHandler } from "../../middleware/errorHandler.ts"
 import { z } from "zod"
 
 const jsonReq = (method: "POST" | "PATCH" | "DELETE", path: string, body?: unknown) =>
-  app.request(path, {
+  app.request(`/api${path}`, {
     method,
     headers: { "Content-Type": "application/json" },
     body: body ? JSON.stringify(body) : null
@@ -55,7 +55,7 @@ const getCoinFromDb = async (id: string) => {
 
 describe("Global tests", () => {
   test("GET /health should return a 200 status", async () => {
-    const res = await app.request("/health")
+    const res = await app.request("/api/health")
     expect(res.status).toBe(200)
   })
 
@@ -97,7 +97,7 @@ describe("Global tests", () => {
       throw new Error("Database connection timed out abruptly")
     })
 
-    const res = await app.request("/coins")
+    const res = await app.request("/api/coins")
     expect(res.status).toBe(500)
 
     const body = await res.json()
@@ -112,7 +112,7 @@ describe("GET /coins", () => {
   test("should return an empty list if no coins exist", async () => {
     await db.delete(coins)
 
-    const res = await app.request("/coins")
+    const res = await app.request("/api/coins")
     expect(res.status).toBe(200)
 
     const body = await res.json()
@@ -120,7 +120,7 @@ describe("GET /coins", () => {
   })
 
   test("should return a list of all coins", async () => {
-    const res = await app.request("/coins")
+    const res = await app.request("/api/coins")
     expect(res.status).toBe(200)
 
     const body = await res.json()
@@ -131,7 +131,7 @@ describe("GET /coins", () => {
 
 describe("GET /coins/:id", () => {
   test("should return a coin with linked duties", async () => {
-    const res = await app.request(`/coins/${COIN_IDS.AUTOMATE}`)
+    const res = await app.request(`/api/coins/${COIN_IDS.AUTOMATE}`)
     expect(res.status).toBe(200)
 
     const body = await res.json()
@@ -155,7 +155,7 @@ describe("GET /coins/:id", () => {
   test("should return a 404 status if the coin ID does not exist", async () => {
     const nonExistentId = "00000000-0000-0000-0000-000000000000"
 
-    const res = await app.request(`/coins/${nonExistentId}`)
+    const res = await app.request(`/api/coins/${nonExistentId}`)
     expect(res.status).toBe(404)
 
     const body = await res.json()
@@ -225,7 +225,7 @@ describe("POST /coins", () => {
   })
 
   test("should return a 400 error for malformed JSON request body", async () => {
-    const res = await app.request("/coins", {
+    const res = await app.request("/api/coins", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: "{ invalid-json: "

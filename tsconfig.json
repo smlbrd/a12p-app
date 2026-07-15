@@ -5,7 +5,7 @@
     "target": "esnext",
     "types": ["node"],
 
-    "rootDir": "src",
+    "rootDir": ".",
     "outDir": "dist",
     "sourceMap": true,
     "declaration": true,
@@ -18,12 +18,13 @@
     "exactOptionalPropertyTypes": true,
     "strict": true,
     "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true
   },
-  "include": ["src/**/*"],
+  "include": ["app/**/*", "vite.config.ts", "vitest.config.ts", "app/lambda.ts", "app/global.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

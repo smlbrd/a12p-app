@@ -11,6 +11,7 @@ export default defineConfig([
       "eslint.config.js",
       "drizzle.config.ts",
       "vitest.config.ts",
+      "playwright.config.ts",
       "scripts/*"
     ]
   },
