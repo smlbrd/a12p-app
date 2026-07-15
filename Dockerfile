@@ -2,7 +2,7 @@
 FROM public.ecr.aws/lambda/nodejs:24 AS builder
 WORKDIR /app
 
-# Install dependencies
+# Install all dependencies (including devDependencies needed to build)
 COPY package*.json ./
 RUN npm ci
 
@@ -16,11 +16,13 @@ RUN npm run build
 FROM public.ecr.aws/lambda/nodejs:24
 WORKDIR ${LAMBDA_TASK_ROOT}
 
-# Copy production dependencies
+# Copy package configurations to install production dependencies
 COPY package*.json ./
-RUN npm ci --only=production
 
-# Copy the built server code AND the built static assets
+# Install ONLY production dependencies and ignore lifecycle scripts (like Husky)
+RUN npm ci --omit=dev --ignore-scripts
+
+# Copy the built server code AND the built static assets from the builder stage
 COPY --from=builder /app/dist ./dist
 
 # Point AWS Lambda to your entry handler
