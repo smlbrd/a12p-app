@@ -26,14 +26,7 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Start Local Docker Database
-        run: docker compose up -d
-
-      - name: Wait for PostgreSQL to be ready
-        run: |
-          until docker compose exec -T test_db pg_isready -U test_user -d test_db; do
-          echo "Waiting for database to accept connections..."
-          sleep 1
-          done
+        run: docker compose up -d --wait
 
       - name: Sync Database Schema
         run: npx drizzle-kit push
