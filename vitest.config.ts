@@ -10,8 +10,7 @@ export default defineConfig((configEnv) => {
         sequence: {
           concurrent: false
         },
-        include: ["**/*.unit.test.*"],
-        exclude: ["**/*.e2e.test.tsx"],
+        exclude: ["node_modules", "**/*.e2e.test.tsx"],
         coverage: {
           provider: "v8",
           reporter: ["text", "json-summary", "json"],
@@ -22,7 +21,6 @@ export default defineConfig((configEnv) => {
             functions: 80,
             statements: 80
           },
-          include: ["app/**/*"],
           exclude: ["**/db/schema.ts", "**/scripts/**", "**/*.e2e.test.tsx"]
         }
       }
