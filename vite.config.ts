@@ -6,7 +6,12 @@ import tailwindcss from "@tailwindcss/vite"
 export default defineConfig(({ mode }) => {
   if (mode === "client") {
     return {
-      plugins: [client(), tailwindcss()]
+      plugins: [client(), tailwindcss()],
+      build: {
+        rolldownOptions: {
+          input: ["./app/client.ts", "./app/style.css"]
+        }
+      }
     }
   }
 
