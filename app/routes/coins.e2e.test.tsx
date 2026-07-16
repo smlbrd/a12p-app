@@ -24,4 +24,12 @@ test.describe("Coins Dashboard E2E", () => {
 
     await expect(coinLink).toBeVisible()
   })
+
+  test("should render linked duties for each coin", async ({ page }) => {
+    await page.goto("/coins")
+
+    const coinRow = page.getByTestId("coin-row").filter({ hasText: "Automate" })
+
+    await expect(coinRow).toBeVisible()
+  })
 })
