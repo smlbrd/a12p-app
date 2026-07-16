@@ -1,10 +1,14 @@
-# Apprenticeship Coin API
+# Apprenticeship Coin App
 
-This is a RESTful API designed to manage apprenticeship coins, their completion status and their associated duties.
+This app is designed to manage apprenticeship coins, their completion status and their associated duties.
 
 ## Features
 
-This API supports full CRUD (Create, Read, Update, Delete) operations for coins:
+The application allows a user to view coin progress.
+
+## API
+
+The API supports full CRUD (Create, Read, Update, Delete) operations for coins:
 
 - List all available coins: `GET /coins`
 - Get details of a specific coin: `GET /coins/:id`
