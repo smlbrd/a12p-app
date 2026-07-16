@@ -7,7 +7,7 @@ export default createRoute(async (c) => {
 
   const dutiesMap = new Map<
     number | string,
-    { id: string; number: number | string; coins: { id: string; name: string }[] }
+    { id: string; number: number | string; description: string; coins: { id: string; name: string }[] }
   >()
 
   for (const coin of coins) {
@@ -16,6 +16,7 @@ export default createRoute(async (c) => {
         dutiesMap.set(duty.number, {
           id: duty.id,
           number: duty.number,
+          description: duty.description,
           coins: []
         })
       }
@@ -50,6 +51,7 @@ export default createRoute(async (c) => {
                 <h2 role="heading" className="text-sm font-bold text-black font-sans">
                   Duty {duty.number}
                 </h2>
+                <p className="text-gray-700 text-xs py-4 font-mono">{duty.description}</p>
 
                 {duty.coins.length > 0 && (
                   <nav aria-label={`Coins associated with Duty ${duty.number}`}>
