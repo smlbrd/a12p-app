@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
     plugins: [honox(), tailwindcss()],
     build: {
       ssr: true,
+      emptyOutDir: false,
       rolldownOptions: {
         input: "./app/server.ts",
         output: {
