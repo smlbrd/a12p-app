@@ -13,6 +13,27 @@ type TransactionClient = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
 export const getAllCoins = (): Promise<Coin[]> => db.select().from(coins).orderBy(asc(coins.name))
 
+export async function getAllCoinsWithDuties(client: typeof db | TransactionClient): Promise<CoinWithDuties[]> {
+  const rawCoins = await client.query.coins.findMany({
+    with: {
+      coinsToDuties: {
+        with: {
+          duty: true
+        }
+      }
+    }
+  })
+
+  return rawCoins.map(
+    (coin): CoinWithDuties => ({
+      id: coin.id,
+      name: coin.name,
+      isCompleted: coin.isCompleted,
+      duties: coin.coinsToDuties.map((cd) => cd.duty)
+    })
+  )
+}
+
 export async function getCoinWithDuties(
   client: typeof db | TransactionClient,
   coinId: string

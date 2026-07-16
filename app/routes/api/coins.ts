@@ -3,7 +3,13 @@ import { zValidator } from "@hono/zod-validator"
 import { HTTPException } from "hono/http-exception"
 import { z } from "zod"
 import { insertCoinWithDutiesSchema, patchCoinWithDutiesSchema } from "../../db/schema.ts"
-import { createCoin, deleteCoin, getAllCoins, getCoinWithDuties, updateCoin } from "../../services/coinService.ts"
+import {
+  createCoin,
+  deleteCoin,
+  getAllCoinsWithDuties,
+  getCoinWithDuties,
+  updateCoin
+} from "../../services/coinService.ts"
 import { db } from "../../db/db.ts"
 
 const coins = new Hono()
@@ -13,7 +19,7 @@ const validateJson = <T extends z.ZodTypeAny>(schema: T) =>
     if (!res.success) throw res.error
   })
 
-coins.get("/", async (c) => c.json(await getAllCoins()))
+coins.get("/", async (c) => c.json(await getAllCoinsWithDuties(db)))
 
 coins.get("/:id", async (c) => {
   const id = c.req.param("id")

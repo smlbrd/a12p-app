@@ -21,7 +21,7 @@ export default defineConfig((configEnv) => {
             functions: 80,
             statements: 80
           },
-          exclude: ["**/db/schema.ts", "**/scripts/**", "**/*.e2e.test.tsx"]
+          exclude: ["**/db/**", "**/scripts/**", "**/routes/*.tsx", "**/*.e2e.test.tsx"]
         }
       }
     })

@@ -93,9 +93,7 @@ describe("Global tests", () => {
   })
 
   test("should return a 500 error if the database catastrophically crashes", async () => {
-    vi.spyOn(db, "select").mockImplementationOnce(() => {
-      throw new Error("Database connection timed out abruptly")
-    })
+    vi.spyOn(db.query.coins, "findMany").mockRejectedValueOnce(new Error("Database connection timed out abruptly"))
 
     const res = await app.request("/api/coins")
     expect(res.status).toBe(500)
