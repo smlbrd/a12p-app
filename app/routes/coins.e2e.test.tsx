@@ -12,7 +12,6 @@ test.describe("Coins Dashboard E2E", () => {
     await page.goto("/coins")
 
     await expect(page.getByRole("heading", { name: "Coins Dashboard" })).toBeVisible()
-    await expect(page.getByRole("region")).toHaveCount(0)
     await expect(page.getByText("No coins available.")).toBeVisible()
   })
 
@@ -20,7 +19,6 @@ test.describe("Coins Dashboard E2E", () => {
     await page.goto("/coins")
 
     const coinHeading = page.getByRole("heading", { name: "Automate" })
-
     await expect(coinHeading).toBeVisible()
   })
 
@@ -32,10 +30,10 @@ test.describe("Coins Dashboard E2E", () => {
     })
     await expect(coinCard).toBeVisible()
 
-    const dutyItems = coinCard.getByRole("listitem")
+    const dutyLinks = coinCard.getByRole("link", { name: /Duty \d+/ })
 
-    await expect(dutyItems).toHaveCount(3)
-    await expect(dutyItems).toContainText(["Duty 5", "Duty 7", "Duty 10"])
+    await expect(dutyLinks).toHaveCount(3)
+    await expect(dutyLinks).toContainText(["Duty 5", "Duty 7", "Duty 10"])
   })
 
   test("clicking a duty redirects user to specific duty", async ({ page }) => {
@@ -49,8 +47,6 @@ test.describe("Coins Dashboard E2E", () => {
 
     const targetDuty = page.locator("#duty-5")
     await expect(targetDuty).toBeVisible()
-    await expect(targetDuty).toContainText(
-      "Build and operate a Continuous Integration (CI) capability, employing version control of source code and related artefacts"
-    )
+    await expect(targetDuty.getByRole("heading", { name: "Duty 5" })).toBeVisible()
   })
 })

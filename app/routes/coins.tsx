@@ -25,9 +25,11 @@ export default createRoute(async (c) => {
       ) : (
         <ul className="bg-white border border-gray-400 divide-y divide-gray-400 overflow-hidden list-none p-0 m-0">
           {coins.map((coin) => (
-            <li key={coin.id} className="p-4 bg-white">
+            <li key={coin.id} id={`coin-${coin.id}`} className="p-4 bg-white">
               <article className="flex flex-col gap-4">
-                <h2 className="text-sm font-bold text-black font-sans">{coin.name}</h2>
+                <h2 role="heading" className="text-sm font-bold text-black font-sans">
+                  {coin.name}
+                </h2>
 
                 {coin.duties.length > 0 && (
                   <nav aria-label={`Duties associated with ${coin.name}`}>
