@@ -12,5 +12,7 @@ export default defineConfig({
     reuseExistingServer: !process.env.production,
     stdout: "ignore",
     stderr: "pipe"
-  }
+  },
+  fullyParallel: false,
+  workers: 1
 })
