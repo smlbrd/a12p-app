@@ -18,7 +18,18 @@ export default function Card(
     return (
         <li
             id={id}
-            className={`bg-white transition-all duration-300 ${className}`}
+            className={`
+        bg-white 
+        transition-all 
+        duration-200 
+        scroll-mt-6 
+        target:bg-green-50/80 
+        target:ring-2 
+        target:ring-green-500 
+        target:ring-offset-2
+        
+        ${className}
+      `}
         >
             <article className={`flex flex-col ${articleClassName}`}>
                 {children}

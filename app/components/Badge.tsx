@@ -9,7 +9,7 @@ export default function Badge(
     return (
         <a
             href={href}
-            className="block bg-blue-100 text-blue-900 px-2.5 py-1 border border-blue-200 transition-colors hover:bg-blue-200 cursor-pointer"
+            className="block text-xs font-mono font-bold text-emerald-700 hover:text-emerald-900 border border-emerald-300 px-3 py-1.5 rounded bg-emerald-50 hover:bg-emerald-100 transition cursor-pointer"
         >
             {label}
         </a>
