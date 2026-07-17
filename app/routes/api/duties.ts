@@ -5,7 +5,7 @@ import { getAllDutiesWithCoins } from "../../services/dutyService.ts"
 const duties = new Hono()
 
 duties.get("/", async (c) => {
-  return c.json(await getAllDutiesWithCoins(db))
+    return c.json(await getAllDutiesWithCoins(db))
 })
 
 export default duties

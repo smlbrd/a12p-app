@@ -1,7 +1,6 @@
 import { createRoute } from "honox/factory"
 import { db } from "../db/db.ts"
-import { getAllCoinsWithDuties } from "../services/coinService.ts"
-
+import { getAllDutiesWithCoins } from "../services/dutyService.ts"
 import PageContainer from "../components/PageContainer.tsx"
 import PageHeader from "../components/PageHeader.tsx"
 import CardList from "../components/CardList.tsx"
@@ -9,30 +8,7 @@ import Card from "../components/Card.tsx"
 import Badge from "../components/Badge.tsx"
 
 export default createRoute(async (c) => {
-    interface GroupedDuty {
-        id: string
-        number: number | string
-        description: string
-        coins: { id: string; name: string }[]
-    }
-
-    const coins = await getAllCoinsWithDuties(db)
-    const dutiesMap = new Map<number | string, GroupedDuty>()
-
-    for (const {id: coinId, name: coinName, duties: coinDuties} of coins) {
-        for (const {id, number, description} of coinDuties) {
-            let entry = dutiesMap.get(number)
-
-            if (!entry) {
-                entry = {id, number, description, coins: []}
-                dutiesMap.set(number, entry)
-            }
-
-            entry.coins.push({id: coinId, name: coinName})
-        }
-    }
-
-    const duties = Array.from(dutiesMap.values()).sort((a, b) => Number(a.number) - Number(b.number))
+    const duties = await getAllDutiesWithCoins(db)
 
     return c.render(
         <PageContainer>
