@@ -7,100 +7,100 @@ import {
   type CoinWithDuties,
   type NewCoinWithDuties,
   type PatchCoinWithDuties
-} from "../db/schema.ts"
+} from "../db/schema/index.ts"
 
 type TransactionClient = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
 export const getAllCoins = (): Promise<Coin[]> => db.select().from(coins).orderBy(asc(coins.name))
 
 export async function getAllCoinsWithDuties(client: typeof db | TransactionClient): Promise<CoinWithDuties[]> {
-  const rawCoins = await client.query.coins.findMany({
-    with: {
-      coinsToDuties: {
+    const rawCoins = await client.query.coins.findMany({
         with: {
-          duty: true
+            coinsToDuties: {
+                with: {
+                    duty: true
+                }
+            }
         }
-      }
-    }
-  })
-
-  return rawCoins.map(
-    (coin): CoinWithDuties => ({
-      id: coin.id,
-      name: coin.name,
-      isCompleted: coin.isCompleted,
-      duties: coin.coinsToDuties.map((cd) => cd.duty)
     })
-  )
+
+    return rawCoins.map(
+        (coin): CoinWithDuties => ({
+            id: coin.id,
+            name: coin.name,
+            isCompleted: coin.isCompleted,
+            duties: coin.coinsToDuties.map((cd) => cd.duty)
+        })
+    )
 }
 
 export async function getCoinWithDuties(
-  client: typeof db | TransactionClient,
-  coinId: string
+    client: typeof db | TransactionClient,
+    coinId: string
 ): Promise<CoinWithDuties | null> {
-  const result = await client.query.coins.findFirst({
-    where: eq(coins.id, coinId),
-    with: {
-      coinsToDuties: {
+    const result = await client.query.coins.findFirst({
+        where: eq(coins.id, coinId),
         with: {
-          duty: true
+            coinsToDuties: {
+                with: {
+                    duty: true
+                }
+            }
         }
-      }
+    })
+
+    if (!result) return null
+
+    return {
+        id: result.id,
+        name: result.name,
+        isCompleted: result.isCompleted,
+        duties: result.coinsToDuties.map((cd) => cd.duty)
     }
-  })
-
-  if (!result) return null
-
-  return {
-    id: result.id,
-    name: result.name,
-    isCompleted: result.isCompleted,
-    duties: result.coinsToDuties.map((cd) => cd.duty)
-  }
 }
 
 export async function createCoin(data: NewCoinWithDuties): Promise<CoinWithDuties | null> {
-  return await db.transaction(async (tx) => {
-    const { dutyIds, ...coinData } = data
+    return await db.transaction(async (tx) => {
+        const {dutyIds, ...coinData} = data
 
-    const [newCoin] = await tx.insert(coins).values(coinData).onConflictDoNothing({ target: coins.name }).returning()
+        const [newCoin] = await tx.insert(coins).values(coinData).onConflictDoNothing({target: coins.name}).returning()
 
-    if (!newCoin) return null
+        if (!newCoin) return null
 
-    if (dutyIds && dutyIds.length > 0) {
-      const junctionRows = dutyIds.map((dutyId) => ({ coinId: newCoin.id, dutyId }))
-      await tx.insert(coinsToDuties).values(junctionRows)
-    }
+        if (dutyIds && dutyIds.length > 0) {
+            const junctionRows = dutyIds.map((dutyId) => ({coinId: newCoin.id, dutyId}))
+            await tx.insert(coinsToDuties).values(junctionRows)
+        }
 
-    return await getCoinWithDuties(tx, newCoin.id)
-  })
+        return await getCoinWithDuties(tx, newCoin.id)
+    })
 }
 
 export async function updateCoin(id: string, data: PatchCoinWithDuties): Promise<NewCoinWithDuties | null> {
-  return await db.transaction(async (tx) => {
-    const { dutyIds, ...coinData } = data
+    return await db.transaction(async (tx) => {
+        const {dutyIds, ...coinData} = data
 
-    if (Object.keys(coinData).length > 0) {
-      await tx.update(coins).set(coinData).where(eq(coins.id, id))
-    }
+        if (Object.keys(coinData).length > 0) {
+            await tx.update(coins).set(coinData).where(eq(coins.id, id))
+        }
 
-    if (dutyIds !== undefined) {
-      await tx.delete(coinsToDuties).where(eq(coinsToDuties.coinId, id))
+        if (dutyIds !== undefined) {
+            await tx.delete(coinsToDuties).where(eq(coinsToDuties.coinId, id))
 
-      if (dutyIds.length > 0) {
-        const junctionRows = dutyIds.map((dutyId) => ({ coinId: id, dutyId }))
-        await tx.insert(coinsToDuties).values(junctionRows)
-      }
-    }
+            if (dutyIds.length > 0) {
+                const junctionRows = dutyIds.map((dutyId) => ({coinId: id, dutyId}))
+                await tx.insert(coinsToDuties).values(junctionRows)
+            }
+        }
 
-    return await getCoinWithDuties(tx, id)
-  })
+        return await getCoinWithDuties(tx, id)
+    })
 }
 
 export async function deleteCoin(id: string): Promise<boolean> {
-  return await db.transaction(async (tx) => {
-    const result = await tx.delete(coins).where(eq(coins.id, id))
+    return await db.transaction(async (tx) => {
+        const result = await tx.delete(coins).where(eq(coins.id, id))
 
-    return (result?.rowCount ?? 0) > 0
-  })
+        return (result?.rowCount ?? 0) > 0
+    })
 }
