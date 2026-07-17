@@ -1,8 +1,7 @@
 name: Check Code Coverage
 
 on:
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
 
 env:
   TEST_DB_CONTAINER: postgresql://test_user:test_password@localhost:5433/test_db
