@@ -3,17 +3,16 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "target": "esnext",
-    "types": ["node"],
-
+    "types": [
+      "node"
+    ],
     "rootDir": ".",
     "outDir": "dist",
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
-
     "allowImportingTsExtensions": true,
     "rewriteRelativeImportExtensions": true,
-
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "strict": true,
@@ -25,6 +24,16 @@
     "moduleDetection": "force",
     "skipLibCheck": true
   },
-  "include": ["app/**/*", "vite.config.ts", "vitest.config.ts", "app/lambda.ts", "app/global.d.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "app/**/*",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "app/lambda.ts",
+    "app/global.d.ts",
+    "eslint.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }
