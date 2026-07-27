@@ -12,6 +12,9 @@
     "db:seed:prod": "tsx --env-file=.env.production scripts/run-seed.ts",
     "db:setup:local": "npm run db:push && npm run db:seed:local",
     "test": "vitest run",
+    "test:unit": "vitest run --exclude '**/*.integration.test.ts'",
+    "test:integration": "vitest run --exclude '**/*.unit.test.ts'",
+    "test:e2e": "playwright test",
     "coverage": "vitest run --coverage",
     "up": "docker compose up -d",
     "down": "docker compose down"
