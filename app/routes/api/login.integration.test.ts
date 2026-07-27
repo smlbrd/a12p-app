@@ -29,4 +29,34 @@ describe("POST /login", () => {
         expect(setCookieHeader).toContain("auth_token=")
         expect(setCookieHeader).toContain("HttpOnly")
     })
+
+    test("should return 400 when missing password", async () => {
+        const formData = new FormData()
+        formData.append("username", "user")
+
+        const res = await app.request("/api/login", {
+            method: "POST",
+            body: formData
+        })
+
+        const bodyText = await res.text()
+
+        expect(res.status).toBe(400)
+        expect(bodyText).toBe("Bad Request: Missing username or password")
+    })
+
+    test("should return 400 when missing username", async () => {
+        const formData = new FormData()
+        formData.append("password", "user123")
+
+        const res = await app.request("/api/login", {
+            method: "POST",
+            body: formData
+        })
+
+        const bodyText = await res.text()
+
+        expect(res.status).toBe(400)
+        expect(bodyText).toBe("Bad Request: Missing username or password")
+    })
 })
