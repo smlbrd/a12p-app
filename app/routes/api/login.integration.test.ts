@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import app from "../../server.ts"
-import { deleteCoinsAndDuties, seedCoinsAndDuties } from "../../db/seeds/seedData.ts"
+import { deleteCoinsAndDuties, seedData } from "../../db/seeds/seedData.ts"
 
 const formReq = (path: string, fields: Record<string, string>) => {
     const formData = new FormData()
@@ -14,7 +14,7 @@ const formReq = (path: string, fields: Record<string, string>) => {
 
 beforeEach(async () => {
     await deleteCoinsAndDuties()
-    await seedCoinsAndDuties()
+    await seedData()
 })
 
 afterEach(() => {
@@ -23,7 +23,7 @@ afterEach(() => {
 
 describe("POST /login", () => {
     test("should authenticate standard user, set HttpOnly cookie, and redirect to /coins", async () => {
-        const res = await formReq("/login", {username: "user", password: "user123"})
+        const res = await formReq("/login", {username: "testuser", password: "Password123!"})
 
         expect(res.status).toBe(302)
         expect(res.headers.get("Location")).toBe("/coins")
@@ -34,8 +34,8 @@ describe("POST /login", () => {
     })
 
     test.each([
-        {fields: {username: "user"}, missingField: "password"},
-        {fields: {password: "user123"}, missingField: "username"}
+        {fields: {username: "testuser"}, missingField: "password"},
+        {fields: {password: "Password123!"}, missingField: "username"}
     ])("should return a 400 error when missing $missingField", async ({fields, missingField}) => {
         const res = await formReq("/login", fields)
         expect(res.status).toBe(400)
@@ -54,8 +54,8 @@ describe("POST /login", () => {
     })
 
     test.each([
-        {fields: {username: "user", password: "wrong-password"}, scenario: "password is incorrect"},
-        {fields: {username: "unknown-user", password: "user123"}, scenario: "user does not exist"}
+        {fields: {username: "testuser", password: "wrong-password"}, scenario: "password is incorrect"},
+        {fields: {username: "unknown-user", password: "Password123!"}, scenario: "user does not exist"}
     ])("should return a 401 error when $scenario", async ({fields}) => {
         const res = await formReq("/login", fields)
         expect(res.status).toBe(401)

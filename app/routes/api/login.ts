@@ -1,10 +1,13 @@
+import { verify } from "@node-rs/argon2"
+import { eq } from "drizzle-orm"
 import { Hono } from "hono"
 import { env } from "hono/adapter"
 import { setCookie } from "hono/cookie"
 import { sign } from "hono/jwt"
 import { z } from "zod"
-
+import { db } from "../../db/db.ts"
 import { validate } from "../../middleware/validate.ts"
+import { users } from "../../db/schema/index.ts"
 
 const login = new Hono()
 
@@ -23,9 +26,15 @@ login.post("/", validate("form", loginSchema), async (c) => {
         throw new Error("JWT_SECRET environment variable is missing.")
     }
 
+    const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.username, username))
+        .limit(1)
+
     if (user && (await verify(user.passwordHash, password))) {
         const token = await sign(
-            {sub: "user-1", role: "user", username: "user"},
+            {sub: user.id, role: user.role, username: user.username},
             JWT_SECRET
         )
 
@@ -33,7 +42,7 @@ login.post("/", validate("form", loginSchema), async (c) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "Lax",
-            path: "/",
+            path: "/"
         })
 
         return c.redirect("/coins")

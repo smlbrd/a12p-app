@@ -1,6 +1,6 @@
 import { createInsertSchema, createSelectSchema } from "drizzle-zod"
 import { z } from "zod"
-import { coins, coinsToDuties, duties } from "./index.ts";
+import { coins, coinsToDuties, duties, users } from "./index.ts";
 
 export const selectCoinSchema = createSelectSchema(coins)
 export const selectDutySchema = createSelectSchema(duties)

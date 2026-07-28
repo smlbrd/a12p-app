@@ -1,5 +1,5 @@
 import { db } from "../db.ts"
-import { coins, coinsToDuties, duties } from "../schema/index.ts"
+import { coins, coinsToDuties, duties, users } from "../schema/index.ts"
 import { hash } from "@node-rs/argon2"
 
 export const COIN_IDS = {
@@ -135,7 +135,7 @@ export const TEST_USER_CREDENTIALS = {
     role: "user"
 } as const
 
-export async function seedCoinsAndDuties() {
+export async function seedData() {
     const passwordHash = await hash(TEST_USER_CREDENTIALS.password)
 
     const usersData = [
