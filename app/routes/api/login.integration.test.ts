@@ -2,6 +2,16 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import app from "../../server.ts"
 import { deleteCoinsAndDuties, seedCoinsAndDuties } from "../../db/seeds/seedData.ts"
 
+const postLogin = (fields: Record<string, string>) => {
+    const formData = new FormData()
+    Object.entries(fields).forEach(([key, value]) => formData.append(key, value))
+
+    return app.request("/api/login", {
+        method: "POST",
+        body: formData,
+    })
+}
+
 beforeEach(async () => {
     await deleteCoinsAndDuties()
     await seedCoinsAndDuties()
@@ -13,14 +23,7 @@ afterEach(() => {
 
 describe("POST /login", () => {
     test("should authenticate standard user, set HttpOnly cookie, and redirect to /coins", async () => {
-        const formData = new FormData()
-        formData.append("username", "user")
-        formData.append("password", "user123")
-
-        const res = await app.request("/api/login", {
-            method: "POST",
-            body: formData
-        })
+        const res = await postLogin({username: "user", password: "user123"})
 
         expect(res.status).toBe(302)
         expect(res.headers.get("Location")).toBe("/coins")
@@ -30,65 +33,23 @@ describe("POST /login", () => {
         expect(setCookieHeader).toContain("HttpOnly")
     })
 
-    test("should return 400 when missing password", async () => {
-        const formData = new FormData()
-        formData.append("username", "user")
-
-        const res = await app.request("/api/login", {
-            method: "POST",
-            body: formData
-        })
-
-        const bodyText = await res.text()
+    test.each([
+        {fields: {username: "user"}, missingField: "password"},
+        {fields: {password: "user123"}, missingField: "username"},
+    ])("should return 400 when missing $missingField", async ({fields}) => {
+        const res = await postLogin(fields)
 
         expect(res.status).toBe(400)
-        expect(bodyText).toBe("Bad Request: Missing username or password")
+        expect(await res.text()).toBe("Bad Request: Missing username or password")
     })
 
-    test("should return 400 when missing username", async () => {
-        const formData = new FormData()
-        formData.append("password", "user123")
-
-        const res = await app.request("/api/login", {
-            method: "POST",
-            body: formData
-        })
-
-        const bodyText = await res.text()
-
-        expect(res.status).toBe(400)
-        expect(bodyText).toBe("Bad Request: Missing username or password")
-    })
-
-    test("should return 401 when password is incorrect", async () => {
-        const formData = new FormData()
-        formData.append("username", "user")
-        formData.append("password", "wrong-password")
-
-        const res = await app.request("/api/login", {
-            method: "POST",
-            body: formData
-        })
-
-        const bodyText = await res.text()
+    test.each([
+        {fields: {username: "user", password: "wrong-password"}, scenario: "password is incorrect"},
+        {fields: {username: "unknown-user", password: "user123"}, scenario: "user does not exist"},
+    ])("should return 401 when $scenario", async ({fields}) => {
+        const res = await postLogin(fields)
 
         expect(res.status).toBe(401)
-        expect(bodyText).toBe("Unauthorised: Invalid credentials")
-    })
-
-    test("should return 401 when user does not exist", async () => {
-        const formData = new FormData()
-        formData.append("username", "unknown-user")
-        formData.append("password", "user123")
-
-        const res = await app.request("/api/login", {
-            method: "POST",
-            body: formData
-        })
-
-        const bodyText = await res.text()
-
-        expect(res.status).toBe(401)
-        expect(bodyText).toBe("Unauthorised: Invalid credentials")
+        expect(await res.text()).toBe("Unauthorised: Invalid credentials")
     })
 })
