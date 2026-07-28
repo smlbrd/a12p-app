@@ -1,23 +1,18 @@
 import { Hono } from "hono"
-import { zValidator } from "@hono/zod-validator"
 import { HTTPException } from "hono/http-exception"
 import { z } from "zod"
 import { insertCoinWithDutiesSchema, patchCoinWithDutiesSchema } from "../../db/schema/index.ts"
 import {
-  createCoin,
-  deleteCoin,
-  getAllCoinsWithDuties,
-  getCoinWithDuties,
-  updateCoin
+    createCoin,
+    deleteCoin,
+    getAllCoinsWithDuties,
+    getCoinWithDuties,
+    updateCoin
 } from "../../services/coinService.ts"
 import { db } from "../../db/db.ts"
+import { validateJson, validateParam } from "../../middleware/validate.ts"
 
 const coins = new Hono()
-
-const validateJson = <T extends z.ZodTypeAny>(schema: T) =>
-    zValidator("json", schema, (res) => {
-        if (!res.success) throw res.error
-    })
 
 coins.get("/", async (c) => c.json(await getAllCoinsWithDuties(db)))
 
@@ -56,7 +51,7 @@ coins.patch("/:id", validateJson(patchCoinWithDutiesSchema), async (c) => {
     return c.json(updatedCoinWithDuties, 200)
 })
 
-coins.delete("/:id", zValidator("param", z.object({id: z.uuid()})), async (c) => {
+coins.delete("/:id", validateParam(z.object({id: z.uuid()})), async (c) => {
     const {id} = c.req.valid("param")
 
     const isCoinDeleted: boolean = await deleteCoin(id)

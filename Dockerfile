@@ -2,28 +2,30 @@
 FROM public.ecr.aws/lambda/nodejs:24 AS builder
 WORKDIR /app
 
-# Install all dependencies (including devDependencies needed to build)
+# Install all dependencies (including devDependencies needed for build)
 COPY package*.json ./
 RUN npm ci
 
-# Copy source and configurations
+# Copy source code and build
 COPY . .
-
-# Build both server and client bundles (Vite outputs to /app/dist)
 RUN npm run build
 
 # --- Production Runner Stage ---
 FROM public.ecr.aws/lambda/nodejs:24
 WORKDIR ${LAMBDA_TASK_ROOT}
 
+# Prevent lifecycle tools like Husky from running in CI/Docker
+ENV HUSKY=0
+
 # Copy package configurations
 COPY package*.json ./
 
-# Install ONLY production dependencies and ignore lifecycle scripts (like Husky)
-RUN npm ci --omit=dev --ignore-scripts
+# Install ONLY production dependencies in the AWS Lambda Linux environment
+# (This downloads the correct Linux x64/arm64 native binary for @node-rs/argon2)
+RUN npm ci --omit=dev
 
-# Copy the CONTENTS of /app/dist directly to the root of /var/task (note the trailing slash)
+# Copy built application output directly into AWS Lambda task root
 COPY --from=builder /app/dist/ ./
 
-# Point AWS Lambda directly to lambda.handler
+# Point AWS Lambda directly to handler
 CMD ["lambda.handler"]

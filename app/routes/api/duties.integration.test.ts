@@ -2,11 +2,11 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import app from "../../server.ts"
 import { db } from "../../db/db.ts"
 import { type Coin, duties } from "../../db/schema/index.ts"
-import { deleteCoinsAndDuties, dutiesData, seedCoinsAndDuties } from "../../db/seeds/seedData.ts"
+import { deleteCoinsAndDuties, dutiesData, seedData } from "../../db/seeds/seedData.ts"
 
 beforeEach(async () => {
     await deleteCoinsAndDuties()
-    await seedCoinsAndDuties()
+    await seedData()
 })
 
 afterEach(() => {

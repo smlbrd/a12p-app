@@ -1,6 +1,6 @@
 import { createInsertSchema, createSelectSchema } from "drizzle-zod"
 import { z } from "zod"
-import { coins, coinsToDuties, duties } from "./index.ts";
+import { coins, coinsToDuties, duties, users } from "./index.ts";
 
 export const selectCoinSchema = createSelectSchema(coins)
 export const selectDutySchema = createSelectSchema(duties)
@@ -30,3 +30,6 @@ export const patchCoinWithDutiesSchema = insertCoinWithDutiesSchema.partial()
 export const DutyWithCoinsSchema = selectDutySchema.extend({
     coins: z.array(selectCoinSchema)
 })
+
+export const selectUserSchema = createSelectSchema(users)
+export const insertUserSchema = createInsertSchema(users)
