@@ -15,7 +15,7 @@ coverage/
 test-results
 
 # Environment variables
-.env
+.env.test
 .env.production
 
 # Terraform

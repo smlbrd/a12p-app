@@ -21,7 +21,11 @@ login.post(
     }),
     async (c) => {
         const {username, password} = c.req.valid("form")
-        const {JWT_SECRET = "fallback-test-secret"} = env<{ JWT_SECRET: string }>(c)
+        const {JWT_SECRET} = env<{ JWT_SECRET: string }>(c)
+
+        if (!JWT_SECRET) {
+            throw new Error("JWT_SECRET environment variable is missing.")
+        }
 
         if (username === "user" && password === "user123") {
             const token = await sign(
