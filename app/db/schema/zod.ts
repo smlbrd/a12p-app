@@ -30,3 +30,6 @@ export const patchCoinWithDutiesSchema = insertCoinWithDutiesSchema.partial()
 export const DutyWithCoinsSchema = selectDutySchema.extend({
     coins: z.array(selectCoinSchema)
 })
+
+export const selectUserSchema = createSelectSchema(users)
+export const insertUserSchema = createInsertSchema(users)

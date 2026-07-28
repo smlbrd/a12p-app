@@ -23,7 +23,7 @@ login.post("/", validate("form", loginSchema), async (c) => {
         throw new Error("JWT_SECRET environment variable is missing.")
     }
 
-    if (username === "user" && password === "user123") {
+    if (user && (await verify(user.passwordHash, password))) {
         const token = await sign(
             {sub: "user-1", role: "user", username: "user"},
             JWT_SECRET

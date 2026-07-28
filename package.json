@@ -1,5 +1,5 @@
 {
-  "name": "a12p-api-p1",
+  "name": "a12p-app",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -42,6 +42,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@hono/vite-build": "^1.11.1",
+    "@node-rs/argon2": "^2.0.2",
     "@playwright/test": "^1.61.1",
     "@tailwindcss/vite": "^4.3.2",
     "@types/node": "^25.9.2",

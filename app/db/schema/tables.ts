@@ -25,3 +25,10 @@ export const coinsToDuties = coinsSchema.table(
             .references(() => duties.id, {onDelete: "cascade"})
     }
 )
+
+export const users = coinsSchema.table("users", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    username: varchar("username", {length: 255}).notNull().unique(),
+    passwordHash: text("password_hash").notNull(),
+    role: varchar("role", {length: 10}).default("user").notNull()
+})

@@ -1,5 +1,6 @@
 import { db } from "../db.ts"
 import { coins, coinsToDuties, duties } from "../schema/index.ts"
+import { hash } from "@node-rs/argon2"
 
 export const COIN_IDS = {
     ASSEMBLE: "e3a1b2c3-4d5e-6f7a-8b9c-0d1e2f3a4b5c",
@@ -123,7 +124,30 @@ export const linksData = [
     {coinId: COIN_IDS.HOUSTON, dutyId: DUTY_IDS.D10}
 ]
 
+export const USER_IDS = {
+    TEST_USER: "00000000-0000-0000-0000-000000000001"
+} as const
+
+export const TEST_USER_CREDENTIALS = {
+    id: USER_IDS.TEST_USER,
+    username: "testuser",
+    password: "Password123!",
+    role: "user"
+} as const
+
 export async function seedCoinsAndDuties() {
+    const passwordHash = await hash(TEST_USER_CREDENTIALS.password)
+
+    const usersData = [
+        {
+            id: TEST_USER_CREDENTIALS.id,
+            username: TEST_USER_CREDENTIALS.username,
+            passwordHash,
+            role: TEST_USER_CREDENTIALS.role
+        }
+    ]
+
+    await db.insert(users).values(usersData).onConflictDoNothing({target: users.id})
     await db.insert(coins).values(coinsData).onConflictDoNothing({target: coins.id})
     await db.insert(duties).values(dutiesData).onConflictDoNothing({target: duties.id})
     await db.insert(coinsToDuties).values(linksData).onConflictDoNothing()
@@ -133,4 +157,5 @@ export async function deleteCoinsAndDuties() {
     await db.delete(coinsToDuties)
     await db.delete(duties)
     await db.delete(coins)
+    await db.delete(users)
 }
