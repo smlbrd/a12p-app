@@ -59,4 +59,36 @@ describe("POST /login", () => {
         expect(res.status).toBe(400)
         expect(bodyText).toBe("Bad Request: Missing username or password")
     })
+
+    test("should return 401 when password is incorrect", async () => {
+        const formData = new FormData()
+        formData.append("username", "user")
+        formData.append("password", "wrong-password")
+
+        const res = await app.request("/api/login", {
+            method: "POST",
+            body: formData
+        })
+
+        const bodyText = await res.text()
+
+        expect(res.status).toBe(401)
+        expect(bodyText).toBe("Unauthorised: Invalid credentials")
+    })
+
+    test("should return 401 when user does not exist", async () => {
+        const formData = new FormData()
+        formData.append("username", "unknown-user")
+        formData.append("password", "user123")
+
+        const res = await app.request("/api/login", {
+            method: "POST",
+            body: formData
+        })
+
+        const bodyText = await res.text()
+
+        expect(res.status).toBe(401)
+        expect(bodyText).toBe("Unauthorised: Invalid credentials")
+    })
 })
