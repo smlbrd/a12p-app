@@ -2,13 +2,13 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import app from "../../server.ts"
 import { deleteCoinsAndDuties, seedCoinsAndDuties } from "../../db/seeds/seedData.ts"
 
-const postLogin = (fields: Record<string, string>) => {
+const formReq = (path: string, fields: Record<string, string>) => {
     const formData = new FormData()
     Object.entries(fields).forEach(([key, value]) => formData.append(key, value))
 
-    return app.request("/api/login", {
+    return app.request(`/api${path}`, {
         method: "POST",
-        body: formData,
+        body: formData
     })
 }
 
@@ -23,7 +23,7 @@ afterEach(() => {
 
 describe("POST /login", () => {
     test("should authenticate standard user, set HttpOnly cookie, and redirect to /coins", async () => {
-        const res = await postLogin({username: "user", password: "user123"})
+        const res = await formReq("/login", {username: "user", password: "user123"})
 
         expect(res.status).toBe(302)
         expect(res.headers.get("Location")).toBe("/coins")
@@ -35,20 +35,29 @@ describe("POST /login", () => {
 
     test.each([
         {fields: {username: "user"}, missingField: "password"},
-        {fields: {password: "user123"}, missingField: "username"},
-    ])("should return 400 when missing $missingField", async ({fields}) => {
-        const res = await postLogin(fields)
-
+        {fields: {password: "user123"}, missingField: "username"}
+    ])("should return a 400 error when missing $missingField", async ({fields, missingField}) => {
+        const res = await formReq("/login", fields)
         expect(res.status).toBe(400)
-        expect(await res.text()).toBe("Bad Request: Missing username or password")
+
+        const body = await res.json()
+        expect(body).toEqual({
+            success: false,
+            error: {
+                issues: [
+                    expect.objectContaining({
+                        path: [missingField]
+                    })
+                ]
+            }
+        })
     })
 
     test.each([
         {fields: {username: "user", password: "wrong-password"}, scenario: "password is incorrect"},
-        {fields: {username: "unknown-user", password: "user123"}, scenario: "user does not exist"},
-    ])("should return 401 when $scenario", async ({fields}) => {
-        const res = await postLogin(fields)
-
+        {fields: {username: "unknown-user", password: "user123"}, scenario: "user does not exist"}
+    ])("should return a 401 error when $scenario", async ({fields}) => {
+        const res = await formReq("/login", fields)
         expect(res.status).toBe(401)
         expect(await res.text()).toBe("Unauthorised: Invalid credentials")
     })
