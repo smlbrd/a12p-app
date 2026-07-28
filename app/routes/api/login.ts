@@ -23,10 +23,6 @@ login.post(
         const {username, password} = c.req.valid("form")
         const {JWT_SECRET = "fallback-test-secret"} = env<{ JWT_SECRET: string }>(c)
 
-        if (!username || !password) {
-            return c.text("Bad Request: Missing username or password", 400)
-        }
-
         if (username === "user" && password === "user123") {
             const token = await sign(
                 {sub: "user-1", role: "user", username: "user"},
