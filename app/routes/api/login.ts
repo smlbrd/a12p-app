@@ -12,13 +12,17 @@ const loginSchema = z.object({
     password: z.string().min(1, "Password is required")
 })
 
+type LoginInput = z.infer<typeof loginSchema>
+
+const validateLogin = zValidator("form", loginSchema, (result, c) => {
+    if (!result.success) {
+        return c.text("Bad Request: Missing username or password", 400)
+    }
+})
+
 login.post(
     "/",
-    zValidator("form", loginSchema, (result, c) => {
-        if (!result.success) {
-            return c.text("Bad Request: Missing username or password", 400)
-        }
-    }),
+    validateLogin,
     async (c) => {
         const {username, password} = c.req.valid("form")
         const {JWT_SECRET} = env<{ JWT_SECRET: string }>(c)
