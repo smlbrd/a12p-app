@@ -125,27 +125,31 @@ export const linksData = [
 ]
 
 export const USER_IDS = {
-    TEST_USER: "00000000-0000-0000-0000-000000000001"
+    TEST_USER: "00000000-0000-0000-0000-000000000001",
+    TEST_ADMIN: "00000000-0000-0000-0000-000000000002"
 } as const
 
-export const TEST_USER_CREDENTIALS = {
+export const TEST_USER_CREDENTIALS = [{
     id: USER_IDS.TEST_USER,
     username: "testuser",
     password: "Password123!",
     role: "user"
-} as const
+}, {
+    id: USER_IDS.TEST_ADMIN,
+    username: "testadmin",
+    password: "Password456?",
+    role: "admin"
+}] as const
 
 export async function seedData() {
-    const passwordHash = await hash(TEST_USER_CREDENTIALS.password)
-
-    const usersData = [
-        {
-            id: TEST_USER_CREDENTIALS.id,
-            username: TEST_USER_CREDENTIALS.username,
-            passwordHash,
-            role: TEST_USER_CREDENTIALS.role
-        }
-    ]
+    const usersData = await Promise.all(
+        TEST_USER_CREDENTIALS.map(async (cred) => ({
+            id: cred.id,
+            username: cred.username,
+            passwordHash: await hash(cred.password),
+            role: cred.role
+        }))
+    )
 
     await db.insert(users).values(usersData).onConflictDoNothing({target: users.id})
     await db.insert(coins).values(coinsData).onConflictDoNothing({target: coins.id})
@@ -153,7 +157,7 @@ export async function seedData() {
     await db.insert(coinsToDuties).values(linksData).onConflictDoNothing()
 }
 
-export async function deleteCoinsAndDuties() {
+export async function deleteData() {
     await db.delete(coinsToDuties)
     await db.delete(duties)
     await db.delete(coins)

@@ -1,12 +1,12 @@
 import { asc, eq } from "drizzle-orm"
 import { db } from "../db/db.ts"
 import {
-  type Coin,
-  coins,
-  coinsToDuties,
-  type CoinWithDuties,
-  type NewCoinWithDuties,
-  type PatchCoinWithDuties
+    type Coin,
+    coins,
+    coinsToDuties,
+    type CoinWithDuties,
+    type NewCoinWithDuties,
+    type PatchCoinWithDuties
 } from "../db/schema/index.ts"
 
 type TransactionClient = Parameters<Parameters<typeof db.transaction>[0]>[0]
@@ -15,6 +15,7 @@ export const getAllCoins = (): Promise<Coin[]> => db.select().from(coins).orderB
 
 export async function getAllCoinsWithDuties(client: typeof db | TransactionClient): Promise<CoinWithDuties[]> {
     const rawCoins = await client.query.coins.findMany({
+        orderBy: (coins, {asc}) => [asc(coins.name)],
         with: {
             coinsToDuties: {
                 with: {
@@ -29,7 +30,9 @@ export async function getAllCoinsWithDuties(client: typeof db | TransactionClien
             id: coin.id,
             name: coin.name,
             isCompleted: coin.isCompleted,
-            duties: coin.coinsToDuties.map((cd) => cd.duty)
+            duties: coin.coinsToDuties
+                .map((cd) => cd.duty)
+                .sort((a, b) => a.number - b.number)
         })
     )
 }
