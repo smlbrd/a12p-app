@@ -1,11 +1,11 @@
-import { seedData } from "../app/db/seeds/seedData.ts"
+import { deleteData, seedData } from "../app/db/seeds/seedData.ts"
 import { pool } from "../app/db/db.ts"
 
 try {
-    // if (process.env.NODE_ENV !== "production") {
-    //     console.log("🔥 Clearing database...")
-    //     await deleteCoinsAndDuties()
-    // }
+    if (process.env.NODE_ENV !== "production") {
+        console.log("🔥 Clearing database...")
+        await deleteData()
+    }
     console.log("🌱 Seeding coins...")
     await seedData()
     console.log("✅ Database seeded successfully!")
