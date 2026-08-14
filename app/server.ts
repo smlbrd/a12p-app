@@ -7,7 +7,7 @@ import { errorHandler } from "./middleware/errorHandler.ts"
 
 const app = createApp()
 
-app.use("/static/*", serveStatic({root: "./dist"}))
+app.use("/static/*", serveStatic({root: "./"}))
 
 app.use("*", secureHeaders(), optionalAuth)
 app.onError(errorHandler)
