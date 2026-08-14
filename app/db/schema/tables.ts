@@ -26,9 +26,11 @@ export const coinsToDuties = coinsSchema.table(
     }
 )
 
+export const roleEnum = coinsSchema.enum("role", ["user", "admin"])
+
 export const users = coinsSchema.table("users", {
     id: uuid("id").primaryKey().defaultRandom(),
     username: varchar("username", {length: 255}).notNull().unique(),
     passwordHash: text("password_hash").notNull(),
-    role: varchar("role", {length: 10}).default("user").notNull()
+    role: roleEnum("role").default("user").notNull(),
 })
