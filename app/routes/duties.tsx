@@ -1,6 +1,8 @@
 import { createRoute } from "honox/factory"
+import { getCookie } from "hono/cookie"
 import { db } from "../db/db.ts"
 import { getAllDutiesWithCoins } from "../services/dutyService.ts"
+
 import PageContainer from "../components/PageContainer.tsx"
 import PageHeader from "../components/PageHeader.tsx"
 import CardList from "../components/CardList.tsx"
@@ -9,14 +11,15 @@ import Badge from "../components/Badge.tsx"
 
 export default createRoute(async (c) => {
     const duties = await getAllDutiesWithCoins(db)
+    const isLoggedIn = !!getCookie(c, "auth_token")
 
     return c.render(
         <PageContainer>
             <PageHeader
                 title="Duties Dashboard"
                 description="View duties and their linked coins."
-                actionHref="/coins"
-                actionLabel="← Coins"
+                actionLabel={isLoggedIn ? "Log Out" : "Log In"}
+                isLoggedIn={isLoggedIn}
             />
 
             {duties.length === 0 ? (
@@ -30,29 +33,34 @@ export default createRoute(async (c) => {
                             className="p-4"
                             articleClassName="gap-4"
                         >
-                            <h2 role="heading" className="text-sm font-bold text-black font-sans">
+                            <h2 className="text-sm font-bold text-black font-sans">
                                 Duty {duty.number}
                             </h2>
-                            <p className="text-gray-700 text-xs py-4 font-mono">{duty.description}</p>
 
-                            {duty.coins.length > 0 && (
-                                <nav aria-label={`Coins associated with Duty ${duty.number}`}>
-                                    <CardList className="flex flex-wrap gap-2 text-xs font-mono font-bold">
-                                        {duty.coins.map((coin) => (
-                                            <li key={coin.id}>
-                                                <Badge
-                                                    href={`/coins#coin-${coin.id}`}
-                                                    label={coin.name}
-                                                />
-                                            </li>
-                                        ))}
-                                    </CardList>
-                                </nav>
+                            <p className="text-gray-700 text-xs font-mono">
+                                {duty.description}
+                            </p>
+
+                            {duty.coins?.length > 0 && (
+                                <ul
+                                    aria-label={`Coins associated with Duty ${duty.number}`}
+                                    className="flex flex-wrap gap-2 text-xs font-mono font-bold mt-2"
+                                >
+                                    {duty.coins.map((coin) => (
+                                        <li key={coin.id}>
+                                            <Badge
+                                                href={`/coins#coin-${coin.id}`}
+                                                label={coin.name}
+                                            />
+                                        </li>
+                                    ))}
+                                </ul>
                             )}
                         </Card>
                     ))}
                 </CardList>
             )}
-        </PageContainer>
+        </PageContainer>,
+        {isLoggedIn}
     )
 })

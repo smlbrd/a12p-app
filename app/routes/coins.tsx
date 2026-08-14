@@ -1,4 +1,5 @@
 import { createRoute } from "honox/factory"
+import { getCookie } from "hono/cookie"
 import { db } from "../db/db.ts"
 import { getAllCoinsWithDuties } from "../services/coinService.ts"
 
@@ -7,17 +8,19 @@ import PageHeader from "../components/PageHeader.tsx"
 import CardList from "../components/CardList.tsx"
 import Card from "../components/Card.tsx"
 import Badge from "../components/Badge.tsx"
+import CoinCheckbox from "../islands/CoinCheckbox.tsx"
 
 export default createRoute(async (c) => {
     const coins = await getAllCoinsWithDuties(db)
+    const isLoggedIn = !!getCookie(c, "auth_token")
 
     return c.render(
         <PageContainer>
             <PageHeader
                 title="Coins Dashboard"
                 description="View coins and their linked duties."
-                actionHref="/duties"
-                actionLabel="Duties →"
+                actionLabel={isLoggedIn ? "Log Out" : "Log In"}
+                isLoggedIn={isLoggedIn}
             />
 
             {coins.length === 0 ? (
@@ -31,28 +34,55 @@ export default createRoute(async (c) => {
                             className="p-4"
                             articleClassName="gap-4"
                         >
-                            <h2 role="heading" className="text-sm font-bold text-black font-sans">
-                                {coin.name}
-                            </h2>
+                            <div className="flex items-center justify-start gap-4">
+                                {isLoggedIn ? (
+                                    /* Interactive Island for Logged-In Users */
+                                    <CoinCheckbox
+                                        coinId={coin.id}
+                                        coinName={coin.name}
+                                        initialCompleted={coin.isCompleted}
+                                    />
+                                ) : (
+                                    /* Static HTML Fallback for Logged-Out Users */
+                                    <div className="inline-flex items-center gap-3 select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={coin.isCompleted}
+                                            disabled
+                                            aria-label={`${coin.name} status: ${coin.isCompleted ? "Completed" : "Incomplete"}`}
+                                            className="h-4 w-4 rounded border-gray-300 text-emerald-600 accent-emerald-600 cursor-not-allowed opacity-60"
+                                        />
+                                        <h2 className={`text-sm font-bold font-sans ${
+                                            coin.isCompleted
+                                                ? "line-through text-gray-400"
+                                                : "text-black"
+                                        }`}>
+                                            {coin.name}
+                                        </h2>
+                                    </div>
+                                )}
+                            </div>
 
-                            {coin.duties.length > 0 && (
-                                <nav aria-label={`Duties associated with ${coin.name}`}>
-                                    <CardList className="flex flex-wrap gap-2 text-xs font-mono font-bold">
-                                        {coin.duties.map((duty) => (
-                                            <li key={duty.id}>
-                                                <Badge
-                                                    href={`/duties#duty-${duty.number}`}
-                                                    label={`Duty ${duty.number}`}
-                                                />
-                                            </li>
-                                        ))}
-                                    </CardList>
-                                </nav>
+                            {coin.duties?.length > 0 && (
+                                <ul
+                                    aria-label={`Duties associated with ${coin.name}`}
+                                    className="flex flex-wrap gap-2 text-xs font-mono font-bold mt-2"
+                                >
+                                    {coin.duties.map((duty) => (
+                                        <li key={duty.id}>
+                                            <Badge
+                                                href={`/duties#duty-${duty.number}`}
+                                                label={`Duty ${duty.number}`}
+                                            />
+                                        </li>
+                                    ))}
+                                </ul>
                             )}
                         </Card>
                     ))}
                 </CardList>
             )}
-        </PageContainer>
+        </PageContainer>,
+        {isLoggedIn}
     )
 })

@@ -1,14 +1,14 @@
 import { expect, test } from "@playwright/test"
-import { deleteCoinsAndDuties, seedData } from "../db/seeds/seedData.ts"
+import { deleteData, seedData } from "../db/seeds/seedData.ts"
 
 test.beforeEach(async () => {
-    await deleteCoinsAndDuties()
+    await deleteData()
     await seedData()
 })
 
 test.describe("Coins Dashboard E2E", () => {
     test("should display empty state cleanly when no coins exist", async ({page}) => {
-        await deleteCoinsAndDuties()
+        await deleteData()
         await page.goto("/coins")
 
         await expect(page.getByRole("heading", {name: "Coins Dashboard"})).toBeVisible()
