@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
+import { sign } from "hono/jwt"
 import app from "../../server.ts"
 import { db } from "../../db/db.ts"
 import { coins, coinsToDuties, duties, type Duty, type NewCoin, type NewCoinWithDuties } from "../../db/schema/index.ts"
@@ -8,12 +9,48 @@ import { Hono } from "hono"
 import { errorHandler } from "../../middleware/errorHandler.ts"
 import { z } from "zod"
 
-const jsonReq = (method: "POST" | "PATCH" | "DELETE", path: string, body?: unknown) =>
-    app.request(`/api${path}`, {
+const getAdminHeaders = async () => {
+    const secret = process.env.JWT_SECRET || "super-secret-test-key"
+    const token = await sign(
+        {sub: "test-admin-id", username: "adminuser", role: "admin"},
+        secret,
+        "HS256"
+    )
+    return {
+        "Content-Type": "application/json",
+        Cookie: `auth_token=${token}`,
+    }
+}
+
+const getUserHeaders = async () => {
+    const secret = process.env.JWT_SECRET || "super-secret-test-key"
+    const token = await sign(
+        {sub: "test-user-id", username: "regularuser", role: "user"},
+        secret,
+        "HS256"
+    )
+    return {
+        "Content-Type": "application/json",
+        Cookie: `auth_token=${token}`,
+    }
+}
+
+const jsonReq = async (
+    method: "POST" | "PATCH" | "DELETE",
+    path: string,
+    body?: unknown,
+    customHeaders: Record<string, string> = {}
+) => {
+    const adminHeaders = await getAdminHeaders()
+    return app.request(`/api${path}`, {
         method,
-        headers: {"Content-Type": "application/json"},
-        body: body ? JSON.stringify(body) : null
+        headers: {
+            ...adminHeaders,
+            ...customHeaders,
+        },
+        body: body ? JSON.stringify(body) : null,
     })
+}
 
 beforeEach(async () => {
     await deleteData()
@@ -31,7 +68,7 @@ const seedTestDuties = async () => {
             {number: 1, description: "Test Duty 1"},
             {number: 2, description: "Test Duty 2"},
             {number: 3, description: "Test Duty 3"},
-            {number: 4, description: "Test Duty 4"}
+            {number: 4, description: "Test Duty 4"},
         ])
         .returning()
 }
@@ -70,11 +107,11 @@ describe("Global tests", () => {
 
         testApp.get("/test-zod-error", (c) => {
             const mockSchema = z.object({
-                coinName: z.string()
+                coinName: z.string(),
             })
 
             mockSchema.parse({
-                coinName: 123
+                coinName: 123,
             })
 
             return c.text("this is unreachable due to the error")
@@ -87,8 +124,8 @@ describe("Global tests", () => {
         expect(body).toEqual({
             success: false,
             error: {
-                issues: [{path: ["coinName"], message: "Invalid input: expected string, received number"}]
-            }
+                issues: [{path: ["coinName"], message: "Invalid input: expected string, received number"}],
+            },
         })
     })
 
@@ -101,8 +138,64 @@ describe("Global tests", () => {
         const body = await res.json()
         expect(body).toEqual({
             success: false,
-            error: "INTERNAL_SERVER_ERROR"
+            error: "INTERNAL_SERVER_ERROR",
         })
+    })
+})
+
+describe("Route Security", () => {
+    test("should return 401 when creating a coin without authentication", async () => {
+        const res = await app.request("/api/coins", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({name: "Unauthorised Coin"}),
+        })
+        expect(res.status).toBe(401)
+    })
+
+    test("should return 403 when creating a coin as a non-admin user", async () => {
+        const userHeaders = await getUserHeaders()
+        const res = await app.request("/api/coins", {
+            method: "POST",
+            headers: userHeaders,
+            body: JSON.stringify({name: "Forbidden Coin"}),
+        })
+        expect(res.status).toBe(403)
+    })
+
+    test("should return 401 when updating a coin without authentication", async () => {
+        const res = await app.request(`/api/coins/${COIN_IDS.AUTOMATE}`, {
+            method: "PATCH",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({name: "Unauthorised Update"}),
+        })
+        expect(res.status).toBe(401)
+    })
+
+    test("should return 403 when updating a coin as a non-admin user", async () => {
+        const userHeaders = await getUserHeaders()
+        const res = await app.request(`/api/coins/${COIN_IDS.AUTOMATE}`, {
+            method: "PATCH",
+            headers: userHeaders,
+            body: JSON.stringify({name: "Forbidden Update"}),
+        })
+        expect(res.status).toBe(403)
+    })
+
+    test("should return 401 when deleting a coin without authentication", async () => {
+        const res = await app.request(`/api/coins/${COIN_IDS.AUTOMATE}`, {
+            method: "DELETE",
+        })
+        expect(res.status).toBe(401)
+    })
+
+    test("should return 403 when deleting a coin as a non-admin user", async () => {
+        const userHeaders = await getUserHeaders()
+        const res = await app.request(`/api/coins/${COIN_IDS.AUTOMATE}`, {
+            method: "DELETE",
+            headers: userHeaders,
+        })
+        expect(res.status).toBe(403)
     })
 })
 
@@ -137,7 +230,7 @@ describe("GET /coins/:id", () => {
             id: COIN_IDS.AUTOMATE,
             name: "Automate",
             isCompleted: false,
-            duties: expect.any(Array)
+            duties: expect.any(Array),
         })
 
         expect(body.duties).toHaveLength(3)
@@ -145,7 +238,7 @@ describe("GET /coins/:id", () => {
             expect.arrayContaining([
                 expect.objectContaining({id: DUTY_IDS.D5, number: 5}),
                 expect.objectContaining({id: DUTY_IDS.D7, number: 7}),
-                expect.objectContaining({id: DUTY_IDS.D10, number: 10})
+                expect.objectContaining({id: DUTY_IDS.D10, number: 10}),
             ])
         )
     })
@@ -178,13 +271,13 @@ describe("POST /coins", () => {
         expect(body).toMatchObject({
             id: expect.any(String),
             ...newCoin,
-            duties: []
+            duties: [],
         })
 
         const [dbCoin] = await db.select().from(coins).where(eq(coins.id, body.id)).limit(1)
         expect(dbCoin).toMatchObject({
             id: expect.any(String),
-            ...newCoin
+            ...newCoin,
         })
     })
 
@@ -195,7 +288,7 @@ describe("POST /coins", () => {
 
         const newCoinPayload: NewCoinWithDuties = {
             name: "Dutiful Coin",
-            dutyIds: [duty1.id, duty2.id]
+            dutyIds: [duty1.id, duty2.id],
         }
 
         const res = await jsonReq("POST", "/coins", newCoinPayload)
@@ -205,7 +298,7 @@ describe("POST /coins", () => {
         expect(body).toMatchObject({
             id: expect.any(String),
             name: newCoinPayload.name,
-            duties: matchDutiesArray([duty1, duty2])
+            duties: matchDutiesArray([duty1, duty2]),
         })
     })
 
@@ -218,15 +311,16 @@ describe("POST /coins", () => {
         const body = await res.json()
         expect(body).toEqual({
             success: false,
-            error: "COIN_ALREADY_EXISTS"
+            error: "COIN_ALREADY_EXISTS",
         })
     })
 
     test("should return a 400 error for malformed JSON request body", async () => {
+        const adminHeaders = await getAdminHeaders()
         const res = await app.request("/api/coins", {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: "{ invalid-json: "
+            headers: adminHeaders,
+            body: "{ invalid-json: ",
         })
         expect(res.status).toBe(400)
 
@@ -234,7 +328,7 @@ describe("POST /coins", () => {
         expect(body).toEqual({
             success: false,
             error: "MALFORMED_JSON",
-            details: "The request body could not be parsed as valid JSON."
+            details: "The request body could not be parsed as valid JSON.",
         })
     })
 })
@@ -280,7 +374,7 @@ describe("PATCH /coins/:id", () => {
         const coin = await insertCoin({name: "Testing Duties"})
 
         const updateBody = {
-            dutyIds: [duty1.id, duty2.id]
+            dutyIds: [duty1.id, duty2.id],
         }
 
         const res = await jsonReq("PATCH", `/coins/${coin.id}`, updateBody)
@@ -289,7 +383,7 @@ describe("PATCH /coins/:id", () => {
         const body = await res.json()
         expect(body).toMatchObject({
             id: coin.id,
-            duties: matchDutiesArray([duty1, duty2])
+            duties: matchDutiesArray([duty1, duty2]),
         })
     })
 
@@ -305,7 +399,7 @@ describe("PATCH /coins/:id", () => {
         expect(body.error.issues).toContainEqual(
             expect.objectContaining({
                 path: ["name"],
-                message: "Name cannot be empty"
+                message: "Name cannot be empty",
             })
         )
     })
@@ -341,7 +435,7 @@ describe("PATCH /coins/:id", () => {
         expect(body).toMatchObject({
             id: coin.id,
             name: coin.name,
-            duties: matchDutiesArray([duty2, duty3, duty4])
+            duties: matchDutiesArray([duty2, duty3, duty4]),
         })
     })
 
@@ -379,7 +473,7 @@ describe("DELETE /coins/:id", () => {
         expect(res.status).toBe(204)
 
         const deletedCoin = await db.query.coins.findFirst({
-            where: eq(coins.id, coin.id)
+            where: eq(coins.id, coin.id),
         })
         expect(deletedCoin).toBeUndefined()
     })

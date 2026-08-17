@@ -15,6 +15,7 @@ export type Env = {
     Variables: {
         user: AuthUser | null
         isLoggedIn: boolean
+        isAdmin: boolean
     }
 }
 
@@ -27,6 +28,7 @@ export const optionalAuth = createMiddleware<Env>(async (c, next) => {
             const payload = (await verify(token, JWT_SECRET, "HS256")) as unknown as AuthUser
             c.set("user", payload)
             c.set("isLoggedIn", true)
+            c.set("isAdmin", payload.role === "admin")
             return await next()
         } catch {
             console.error("Invalid or expired token")
@@ -35,6 +37,7 @@ export const optionalAuth = createMiddleware<Env>(async (c, next) => {
 
     c.set("user", null)
     c.set("isLoggedIn", false)
+    c.set("isAdmin", false)
     await next()
 })
 
@@ -47,13 +50,14 @@ export const requireAuth = createMiddleware<Env>(async (c, next) => {
 })
 
 export const requireAdmin = createMiddleware<Env>(async (c, next) => {
-    const user = c.get("user")
+    const isLoggedIn = c.get("isLoggedIn")
+    const isAdmin = c.get("isAdmin")
 
-    if (!user) {
+    if (!isLoggedIn) {
         return c.json({success: false, error: "Unauthorised"}, 401)
     }
 
-    if (user.role !== "admin") {
+    if (!isAdmin) {
         return c.json({success: false, error: "Forbidden: Admin access required"}, 403)
     }
 

@@ -26,15 +26,11 @@ export default function CoinCheckbox({
         try {
             const res = await fetch(`/api/coins/${coinId}`, {
                 method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({isCompleted: nextState}),
             })
 
-            if (!res.ok) {
-                throw new Error("Failed to update coin")
-            }
+            if (!res.ok) throw new Error("Failed to update status")
         } catch (error) {
             console.error("Failed to toggle status:", error)
             setIsCompleted(previousState)

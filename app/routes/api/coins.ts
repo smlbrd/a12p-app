@@ -11,6 +11,7 @@ import {
 } from "../../services/coinService.ts"
 import { db } from "../../db/db.ts"
 import { validateJson, validateParam } from "../../middleware/validate.ts"
+import { optionalAuth, requireAdmin } from "../../middleware/auth.ts"
 
 const coins = new Hono()
 
@@ -27,7 +28,8 @@ coins.get("/:id", async (c) => {
     return c.json(coinWithDuties, 200)
 })
 
-coins.post("/", validateJson(insertCoinWithDutiesSchema), async (c) => {
+// Admins only
+coins.post("/", optionalAuth, requireAdmin, validateJson(insertCoinWithDutiesSchema), async (c) => {
     const validatedBody = c.req.valid("json")
     const newCoinWithDuties = await createCoin(validatedBody)
 
@@ -38,9 +40,21 @@ coins.post("/", validateJson(insertCoinWithDutiesSchema), async (c) => {
     return c.json(newCoinWithDuties, 201)
 })
 
-coins.patch("/:id", validateJson(patchCoinWithDutiesSchema), async (c) => {
+coins.patch("/:id", optionalAuth, validateJson(patchCoinWithDutiesSchema), async (c) => {
+    const isLoggedIn = c.get("isLoggedIn")
+    const isAdmin = c.get("isAdmin")
+
+    if (!isLoggedIn) {
+        return c.json({success: false, error: "UNAUTHORIZED"}, 401)
+    }
+
     const id = c.req.param("id")
     const validatedBody = c.req.valid("json")
+
+    const isModifyingAdminFields = validatedBody.name !== undefined || validatedBody.dutyIds !== undefined
+    if (isModifyingAdminFields && !isAdmin) {
+        return c.json({success: false, error: "FORBIDDEN"}, 403)
+    }
 
     const updatedCoinWithDuties = await updateCoin(id, validatedBody)
 
@@ -51,7 +65,7 @@ coins.patch("/:id", validateJson(patchCoinWithDutiesSchema), async (c) => {
     return c.json(updatedCoinWithDuties, 200)
 })
 
-coins.delete("/:id", validateParam(z.object({id: z.uuid()})), async (c) => {
+coins.delete("/:id", optionalAuth, requireAdmin, validateParam(z.object({id: z.uuid()})), async (c) => {
     const {id} = c.req.valid("param")
 
     const isCoinDeleted: boolean = await deleteCoin(id)

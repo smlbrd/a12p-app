@@ -1,18 +1,19 @@
 import { createRoute } from "honox/factory"
-import { getCookie } from "hono/cookie"
 import { db } from "../db/db.ts"
 import { getAllCoinsWithDuties } from "../services/coinService.ts"
+import { optionalAuth } from "../middleware/auth.ts"
 
 import PageContainer from "../components/PageContainer.tsx"
 import PageHeader from "../components/PageHeader.tsx"
 import CardList from "../components/CardList.tsx"
 import Card from "../components/Card.tsx"
 import Badge from "../components/Badge.tsx"
-import CoinCheckbox from "../islands/CoinCheckbox.tsx"
+import CoinItem from "../islands/CoinItem.tsx"
 
-export default createRoute(async (c) => {
+export default createRoute(optionalAuth, async (c) => {
     const coins = await getAllCoinsWithDuties(db)
-    const isLoggedIn = !!getCookie(c, "auth_token")
+    const isLoggedIn = c.get("isLoggedIn")
+    const isAdmin = c.get("isAdmin")
 
     return c.render(
         <PageContainer>
@@ -31,19 +32,19 @@ export default createRoute(async (c) => {
                         <Card
                             key={coin.id}
                             id={`coin-${coin.id}`}
-                            className="p-4"
+                            className="p-4 has-[hono-island:empty]:hidden"
                             articleClassName="gap-4"
                         >
-                            <div className="flex items-center justify-start gap-4">
-                                {isLoggedIn ? (
-                                    /* Interactive Island for Logged-In Users */
-                                    <CoinCheckbox
-                                        coinId={coin.id}
-                                        coinName={coin.name}
-                                        initialCompleted={coin.isCompleted}
-                                    />
-                                ) : (
-                                    /* Static HTML Fallback for Logged-Out Users */
+                            {isLoggedIn ? (
+                                <CoinItem
+                                    coinId={coin.id}
+                                    initialName={coin.name}
+                                    initialCompleted={coin.isCompleted}
+                                    isAdmin={isAdmin}
+                                    duties={coin.duties}
+                                />
+                            ) : (
+                                <>
                                     <div className="inline-flex items-center gap-3 select-none">
                                         <input
                                             type="checkbox"
@@ -60,23 +61,23 @@ export default createRoute(async (c) => {
                                             {coin.name}
                                         </h2>
                                     </div>
-                                )}
-                            </div>
 
-                            {coin.duties?.length > 0 && (
-                                <ul
-                                    aria-label={`Duties associated with ${coin.name}`}
-                                    className="flex flex-wrap gap-2 text-xs font-mono font-bold mt-2"
-                                >
-                                    {coin.duties.map((duty) => (
-                                        <li key={duty.id}>
-                                            <Badge
-                                                href={`/duties#duty-${duty.number}`}
-                                                label={`Duty ${duty.number}`}
-                                            />
-                                        </li>
-                                    ))}
-                                </ul>
+                                    {coin.duties?.length > 0 && (
+                                        <ul
+                                            aria-label={`Duties associated with ${coin.name}`}
+                                            className="flex flex-wrap gap-2 text-xs font-mono font-bold mt-2"
+                                        >
+                                            {coin.duties.map((duty) => (
+                                                <li key={duty.id}>
+                                                    <Badge
+                                                        href={`/duties#duty-${duty.number}`}
+                                                        label={`Duty ${duty.number}`}
+                                                    />
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </>
                             )}
                         </Card>
                     ))}
