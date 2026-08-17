@@ -132,12 +132,12 @@ export const USER_IDS = {
 export const TEST_USER_CREDENTIALS = [{
     id: USER_IDS.TEST_USER,
     username: "testuser",
-    password: "Password123!",
+    password: "Doubloon1!",
     role: "user"
 }, {
     id: USER_IDS.TEST_ADMIN,
     username: "testadmin",
-    password: "Password456?",
+    password: "Drachma1!",
     role: "admin"
 }] as const
 
