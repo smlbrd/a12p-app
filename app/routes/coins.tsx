@@ -1,18 +1,19 @@
 import { createRoute } from "honox/factory"
-import { getCookie } from "hono/cookie"
 import { db } from "../db/db.ts"
 import { getAllCoinsWithDuties } from "../services/coinService.ts"
+import { optionalAuth } from "../middleware/auth.ts"
 
 import PageContainer from "../components/PageContainer.tsx"
 import PageHeader from "../components/PageHeader.tsx"
 import CardList from "../components/CardList.tsx"
 import Card from "../components/Card.tsx"
 import Badge from "../components/Badge.tsx"
-import CoinCheckbox from "../islands/CoinCheckbox.tsx"
+import CoinItem from "../islands/CoinItem.tsx"
 
-export default createRoute(async (c) => {
+export default createRoute(optionalAuth, async (c) => {
     const coins = await getAllCoinsWithDuties(db)
-    const isLoggedIn = !!getCookie(c, "auth_token")
+    const isLoggedIn = c.get("isLoggedIn")
+    const isAdmin = c.get("isAdmin")
 
     return c.render(
         <PageContainer>
@@ -26,7 +27,7 @@ export default createRoute(async (c) => {
             {coins.length === 0 ? (
                 <p className="text-gray-700 text-xs py-4 font-mono">No coins available.</p>
             ) : (
-                <CardList className="bg-white border border-gray-400 divide-y divide-gray-400 overflow-hidden">
+                <CardList className="bg-white border border-gray-400 divide-y divide-gray-400">
                     {coins.map((coin) => (
                         <Card
                             key={coin.id}
@@ -34,34 +35,31 @@ export default createRoute(async (c) => {
                             className="p-4"
                             articleClassName="gap-4"
                         >
-                            <div className="flex items-center justify-start gap-4">
-                                {isLoggedIn ? (
-                                    /* Interactive Island for Logged-In Users */
-                                    <CoinCheckbox
-                                        coinId={coin.id}
-                                        coinName={coin.name}
-                                        initialCompleted={coin.isCompleted}
+                            {isLoggedIn ? (
+                                <CoinItem
+                                    coinId={coin.id}
+                                    initialName={coin.name}
+                                    initialCompleted={coin.isCompleted}
+                                    isAdmin={isAdmin}
+                                />
+                            ) : (
+                                <div className="inline-flex items-center gap-3 select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={coin.isCompleted}
+                                        disabled
+                                        aria-label={`${coin.name} status: ${coin.isCompleted ? "Completed" : "Incomplete"}`}
+                                        className="h-4 w-4 rounded border-gray-300 text-emerald-600 accent-emerald-600 cursor-not-allowed opacity-60"
                                     />
-                                ) : (
-                                    /* Static HTML Fallback for Logged-Out Users */
-                                    <div className="inline-flex items-center gap-3 select-none">
-                                        <input
-                                            type="checkbox"
-                                            checked={coin.isCompleted}
-                                            disabled
-                                            aria-label={`${coin.name} status: ${coin.isCompleted ? "Completed" : "Incomplete"}`}
-                                            className="h-4 w-4 rounded border-gray-300 text-emerald-600 accent-emerald-600 cursor-not-allowed opacity-60"
-                                        />
-                                        <h2 className={`text-sm font-bold font-sans ${
-                                            coin.isCompleted
-                                                ? "line-through text-gray-400"
-                                                : "text-black"
-                                        }`}>
-                                            {coin.name}
-                                        </h2>
-                                    </div>
-                                )}
-                            </div>
+                                    <h2 className={`text-sm font-bold font-sans ${
+                                        coin.isCompleted
+                                            ? "line-through text-gray-400"
+                                            : "text-black"
+                                    }`}>
+                                        {coin.name}
+                                    </h2>
+                                </div>
+                            )}
 
                             {coin.duties?.length > 0 && (
                                 <ul

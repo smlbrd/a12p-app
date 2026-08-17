@@ -11,6 +11,7 @@ import {
 } from "../../services/coinService.ts"
 import { db } from "../../db/db.ts"
 import { validateJson, validateParam } from "../../middleware/validate.ts"
+import { optionalAuth, requireAdmin } from "../../middleware/auth.ts"
 
 const coins = new Hono()
 
@@ -38,7 +39,7 @@ coins.post("/", validateJson(insertCoinWithDutiesSchema), async (c) => {
     return c.json(newCoinWithDuties, 201)
 })
 
-coins.patch("/:id", validateJson(patchCoinWithDutiesSchema), async (c) => {
+coins.patch("/:id", optionalAuth, validateJson(patchCoinWithDutiesSchema), async (c) => {
     const id = c.req.param("id")
     const validatedBody = c.req.valid("json")
 
@@ -51,7 +52,7 @@ coins.patch("/:id", validateJson(patchCoinWithDutiesSchema), async (c) => {
     return c.json(updatedCoinWithDuties, 200)
 })
 
-coins.delete("/:id", validateParam(z.object({id: z.uuid()})), async (c) => {
+coins.delete("/:id", optionalAuth, requireAdmin, validateParam(z.object({id: z.uuid()})), async (c) => {
     const {id} = c.req.valid("param")
 
     const isCoinDeleted: boolean = await deleteCoin(id)
