@@ -18,7 +18,7 @@ const loginSchema = z.object({
 
 auth.post("/login", validate("json", loginSchema), async (c) => {
     const {username, password} = c.req.valid("json")
-    const {JWT_SECRET} = env<{ JWT_SECRET: string }>(c)
+    const {JWT_SECRET, NODE_ENV} = env<{ JWT_SECRET: string; NODE_ENV: string }>(c)
 
     if (!JWT_SECRET) {
         throw new Error("JWT_SECRET environment variable is missing.")
@@ -31,16 +31,27 @@ auth.post("/login", validate("json", loginSchema), async (c) => {
         .limit(1)
 
     if (user && (await verify(user.passwordHash, password))) {
+        // 5-minute token lifetime
+        const expiresInSeconds = 60 * 5
+        const now = Math.floor(Date.now() / 1000)
+
         const token = await sign(
-            {sub: user.id, role: user.role, username: user.username},
+            {
+                sub: user.id,
+                role: user.role,
+                username: user.username,
+                iat: now,
+                exp: now + expiresInSeconds
+            },
             JWT_SECRET
         )
 
         setCookie(c, "auth_token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
+            secure: NODE_ENV === "production",
             sameSite: "Lax",
-            path: "/"
+            path: "/",
+            maxAge: expiresInSeconds
         })
 
         return c.json({success: true, username: user.username})
