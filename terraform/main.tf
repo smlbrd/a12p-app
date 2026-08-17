@@ -40,6 +40,7 @@ resource "aws_lambda_function" "api" {
     variables = {
       NODE_ENV     = "production"
       DATABASE_URL = var.database_url
+      JWT_SECRET   = var.jwt_secret
     }
   }
 }

@@ -6,7 +6,7 @@ try {
         console.log("🔥 Clearing database...")
         await deleteData()
     }
-    console.log("🌱 Seeding coins...")
+    console.log("🌱 Seeding data...")
     await seedData()
     console.log("✅ Database seeded successfully!")
     await pool.end()
