@@ -27,22 +27,24 @@ export default createRoute(optionalAuth, async (c) => {
             {coins.length === 0 ? (
                 <p className="text-gray-700 text-xs py-4 font-mono">No coins available.</p>
             ) : (
-                <CardList className="bg-white border border-gray-400 divide-y divide-gray-400">
-                    {coins.map((coin) => (
-                        <Card
-                            key={coin.id}
-                            id={`coin-${coin.id}`}
-                            className="p-4"
-                            articleClassName="gap-4"
-                        >
-                            {isLoggedIn ? (
-                                <CoinItem
-                                    coinId={coin.id}
-                                    initialName={coin.name}
-                                    initialCompleted={coin.isCompleted}
-                                    isAdmin={isAdmin}
-                                />
-                            ) : (
+                <CardList className="bg-white border border-gray-400 divide-y divide-gray-400 overflow-hidden">
+                    {coins.map((coin) =>
+                        isLoggedIn ? (
+                            <CoinItem
+                                key={coin.id}
+                                coinId={coin.id}
+                                initialName={coin.name}
+                                initialCompleted={coin.isCompleted}
+                                isAdmin={isAdmin}
+                                duties={coin.duties}
+                            />
+                        ) : (
+                            <Card
+                                key={coin.id}
+                                id={`coin-${coin.id}`}
+                                className="p-4"
+                                articleClassName="gap-4"
+                            >
                                 <div className="inline-flex items-center gap-3 select-none">
                                     <input
                                         type="checkbox"
@@ -59,25 +61,25 @@ export default createRoute(optionalAuth, async (c) => {
                                         {coin.name}
                                     </h2>
                                 </div>
-                            )}
 
-                            {coin.duties?.length > 0 && (
-                                <ul
-                                    aria-label={`Duties associated with ${coin.name}`}
-                                    className="flex flex-wrap gap-2 text-xs font-mono font-bold mt-2"
-                                >
-                                    {coin.duties.map((duty) => (
-                                        <li key={duty.id}>
-                                            <Badge
-                                                href={`/duties#duty-${duty.number}`}
-                                                label={`Duty ${duty.number}`}
-                                            />
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </Card>
-                    ))}
+                                {coin.duties?.length > 0 && (
+                                    <ul
+                                        aria-label={`Duties associated with ${coin.name}`}
+                                        className="flex flex-wrap gap-2 text-xs font-mono font-bold mt-2"
+                                    >
+                                        {coin.duties.map((duty) => (
+                                            <li key={duty.id}>
+                                                <Badge
+                                                    href={`/duties#duty-${duty.number}`}
+                                                    label={`Duty ${duty.number}`}
+                                                />
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </Card>
+                        )
+                    )}
                 </CardList>
             )}
         </PageContainer>,
