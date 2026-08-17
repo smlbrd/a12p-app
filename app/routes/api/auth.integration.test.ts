@@ -21,7 +21,7 @@ afterEach(() => {
 
 describe("POST /api/auth/login", () => {
     test("should authenticate standard user, set HttpOnly cookie, and return success JSON", async () => {
-        const res = await jsonReq("/auth/login", {username: "testuser", password: "Password123!"})
+        const res = await jsonReq("/auth/login", {username: "testuser", password: "Doubloon1!"})
 
         expect(res.status).toBe(200)
         const body = await res.json()
@@ -34,7 +34,7 @@ describe("POST /api/auth/login", () => {
 
     test.each([
         {fields: {username: "testuser"}, missingField: "password"},
-        {fields: {password: "Password123!"}, missingField: "username"}
+        {fields: {password: "Doubloon1!"}, missingField: "username"}
     ])("should return a 400 error when missing $missingField", async ({fields, missingField}) => {
         const res = await jsonReq("/auth/login", fields)
         expect(res.status).toBe(400)
@@ -54,7 +54,7 @@ describe("POST /api/auth/login", () => {
 
     test.each([
         {fields: {username: "testuser", password: "wrong-password"}, scenario: "password is incorrect"},
-        {fields: {username: "unknown-user", password: "Password123!"}, scenario: "user does not exist"}
+        {fields: {username: "unknown-user", password: "Doubloon1!"}, scenario: "user does not exist"}
     ])("should return a 401 error when $scenario", async ({fields}) => {
         const res = await jsonReq("/auth/login", fields)
         expect(res.status).toBe(401)

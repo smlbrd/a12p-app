@@ -49,7 +49,7 @@ export default function CoinCheckbox({
                 type="checkbox"
                 checked={isCompleted}
                 disabled={isUpdating}
-                onChange={handleToggle}
+                onClick={handleToggle}
                 className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 disabled:opacity-50 cursor-pointer accent-emerald-600"
                 aria-label={`Mark ${coinName} as completed`}
             />
