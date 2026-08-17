@@ -1,4 +1,5 @@
 import { createRoute } from "honox/factory"
+import { getCookie } from "hono/cookie"
 import { db } from "../db/db.ts"
 import { getAllCoinsWithDuties } from "../services/coinService.ts"
 
@@ -11,7 +12,7 @@ import CoinCheckbox from "../islands/CoinCheckbox.tsx"
 
 export default createRoute(async (c) => {
     const coins = await getAllCoinsWithDuties(db)
-    const isLoggedIn = c.get("isLoggedIn")
+    const isLoggedIn = !!getCookie(c, "auth_token")
 
     return c.render(
         <PageContainer>

@@ -31,17 +31,8 @@ auth.post("/login", validate("json", loginSchema), async (c) => {
         .limit(1)
 
     if (user && (await verify(user.passwordHash, password))) {
-        const tokenExpirationInSeconds = 60 * 3
-        const now = Math.floor(Date.now() / 1000)
-
         const token = await sign(
-            {
-                sub: user.id,
-                role: user.role,
-                username: user.username,
-                iat: now,
-                exp: now + tokenExpirationInSeconds
-            },
+            {sub: user.id, role: user.role, username: user.username},
             JWT_SECRET
         )
 
@@ -49,8 +40,7 @@ auth.post("/login", validate("json", loginSchema), async (c) => {
             httpOnly: true,
             secure: NODE_ENV === "production",
             sameSite: "Lax",
-            path: "/",
-            maxAge: tokenExpirationInSeconds
+            path: "/"
         })
 
         return c.json({success: true, username: user.username})
@@ -60,7 +50,7 @@ auth.post("/login", validate("json", loginSchema), async (c) => {
 })
 
 auth.post("/logout", (c) => {
-    deleteCookie(c, "auth_token", {path: "/"})
+    deleteCookie(c, "auth_token")
     return c.redirect("/coins", 303)
 })
 

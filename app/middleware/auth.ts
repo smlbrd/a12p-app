@@ -1,5 +1,5 @@
 import { createMiddleware } from "hono/factory"
-import { deleteCookie, getCookie } from "hono/cookie"
+import { getCookie } from "hono/cookie"
 import { verify } from "hono/jwt"
 import { env } from "hono/adapter"
 
@@ -18,30 +18,23 @@ export type Env = {
     }
 }
 
-declare module "hono" {
-    interface ContextVariableMap {
-        user: AuthUser | null
-        isLoggedIn: boolean
-    }
-}
-
 export const optionalAuth = createMiddleware<Env>(async (c, next) => {
     const token = getCookie(c, "auth_token")
     const {JWT_SECRET} = env<{ JWT_SECRET: string }>(c)
-
-    c.set("user", null)
-    c.set("isLoggedIn", false)
 
     if (token && JWT_SECRET) {
         try {
             const payload = (await verify(token, JWT_SECRET, "HS256")) as unknown as AuthUser
             c.set("user", payload)
             c.set("isLoggedIn", true)
+            return await next()
         } catch {
-            deleteCookie(c, "auth_token", {path: "/"})
+            console.error("Invalid or expired token")
         }
     }
 
+    c.set("user", null)
+    c.set("isLoggedIn", false)
     await next()
 })
 
