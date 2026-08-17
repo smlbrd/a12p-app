@@ -8,3 +8,9 @@ variable "database_url" {
   description = "The connection string for the PostgreSQL database"
   sensitive   = true
 }
+
+variable "jwt_secret" {
+  type        = string
+  description = "The secret string for JSON web tokens"
+  sensitive   = true
+}
