@@ -1,5 +1,4 @@
 import { useState } from "hono/jsx"
-import Card from "../components/Card.tsx"
 import Badge from "../components/Badge.tsx"
 import CoinCheckbox from "./CoinCheckbox.tsx"
 import CoinActionsMenu from "./CoinActionsMenu.tsx"
@@ -27,7 +26,6 @@ export default function CoinItem({
     const [name, setName] = useState(initialName)
     const [isDeleted, setIsDeleted] = useState(false)
 
-    // Unmount the entire card immediately when marked deleted
     if (isDeleted) return null
 
     const handleUpdateName = async (newName: string) => {
@@ -50,7 +48,6 @@ export default function CoinItem({
     }
 
     const handleDelete = async () => {
-        // 1. Optimistic removal: hide item instantly before awaiting network request
         setIsDeleted(true)
 
         try {
@@ -61,14 +58,13 @@ export default function CoinItem({
             if (!res.ok) throw new Error("Failed to delete coin")
         } catch (error) {
             console.error("Delete failed, restoring item:", error)
-            // 2. Rollback: restore item if API fails
             setIsDeleted(false)
             alert("Failed to delete coin. Restoring item.")
         }
     }
 
     return (
-        <Card id={`coin-${coinId}`} className="p-4" articleClassName="gap-4">
+        <>
             <div className="flex items-center justify-between gap-4 w-full">
                 <CoinCheckbox
                     coinId={coinId}
@@ -100,6 +96,6 @@ export default function CoinItem({
                     ))}
                 </ul>
             )}
-        </Card>
+        </>
     )
 }

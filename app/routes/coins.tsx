@@ -28,58 +28,59 @@ export default createRoute(optionalAuth, async (c) => {
                 <p className="text-gray-700 text-xs py-4 font-mono">No coins available.</p>
             ) : (
                 <CardList className="bg-white border border-gray-400 divide-y divide-gray-400 overflow-hidden">
-                    {coins.map((coin) =>
-                        isLoggedIn ? (
-                            <CoinItem
-                                key={coin.id}
-                                coinId={coin.id}
-                                initialName={coin.name}
-                                initialCompleted={coin.isCompleted}
-                                isAdmin={isAdmin}
-                                duties={coin.duties}
-                            />
-                        ) : (
-                            <Card
-                                key={coin.id}
-                                id={`coin-${coin.id}`}
-                                className="p-4"
-                                articleClassName="gap-4"
-                            >
-                                <div className="inline-flex items-center gap-3 select-none">
-                                    <input
-                                        type="checkbox"
-                                        checked={coin.isCompleted}
-                                        disabled
-                                        aria-label={`${coin.name} status: ${coin.isCompleted ? "Completed" : "Incomplete"}`}
-                                        className="h-4 w-4 rounded border-gray-300 text-emerald-600 accent-emerald-600 cursor-not-allowed opacity-60"
-                                    />
-                                    <h2 className={`text-sm font-bold font-sans ${
-                                        coin.isCompleted
-                                            ? "line-through text-gray-400"
-                                            : "text-black"
-                                    }`}>
-                                        {coin.name}
-                                    </h2>
-                                </div>
+                    {coins.map((coin) => (
+                        <Card
+                            key={coin.id}
+                            id={`coin-${coin.id}`}
+                            className="p-4 has-[hono-island:empty]:hidden"
+                            articleClassName="gap-4"
+                        >
+                            {isLoggedIn ? (
+                                <CoinItem
+                                    coinId={coin.id}
+                                    initialName={coin.name}
+                                    initialCompleted={coin.isCompleted}
+                                    isAdmin={isAdmin}
+                                    duties={coin.duties}
+                                />
+                            ) : (
+                                <>
+                                    <div className="inline-flex items-center gap-3 select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={coin.isCompleted}
+                                            disabled
+                                            aria-label={`${coin.name} status: ${coin.isCompleted ? "Completed" : "Incomplete"}`}
+                                            className="h-4 w-4 rounded border-gray-300 text-emerald-600 accent-emerald-600 cursor-not-allowed opacity-60"
+                                        />
+                                        <h2 className={`text-sm font-bold font-sans ${
+                                            coin.isCompleted
+                                                ? "line-through text-gray-400"
+                                                : "text-black"
+                                        }`}>
+                                            {coin.name}
+                                        </h2>
+                                    </div>
 
-                                {coin.duties?.length > 0 && (
-                                    <ul
-                                        aria-label={`Duties associated with ${coin.name}`}
-                                        className="flex flex-wrap gap-2 text-xs font-mono font-bold mt-2"
-                                    >
-                                        {coin.duties.map((duty) => (
-                                            <li key={duty.id}>
-                                                <Badge
-                                                    href={`/duties#duty-${duty.number}`}
-                                                    label={`Duty ${duty.number}`}
-                                                />
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </Card>
-                        )
-                    )}
+                                    {coin.duties?.length > 0 && (
+                                        <ul
+                                            aria-label={`Duties associated with ${coin.name}`}
+                                            className="flex flex-wrap gap-2 text-xs font-mono font-bold mt-2"
+                                        >
+                                            {coin.duties.map((duty) => (
+                                                <li key={duty.id}>
+                                                    <Badge
+                                                        href={`/duties#duty-${duty.number}`}
+                                                        label={`Duty ${duty.number}`}
+                                                    />
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </>
+                            )}
+                        </Card>
+                    ))}
                 </CardList>
             )}
         </PageContainer>,
