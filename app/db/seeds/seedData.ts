@@ -3,11 +3,11 @@ import { coins, coinsToDuties, duties, users } from "../schema/index.ts"
 import { hash } from "@node-rs/argon2"
 
 export const COIN_IDS = {
-    ASSEMBLE: "e3a1b2c3-4d5e-6f7a-8b9c-0d1e2f3a4b5c",
-    AUTOMATE: "fa1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
-    CALL_SECURITY: "b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e",
-    GOING_DEEPER: "c3d4e5f6-7a8b-9c0d-1e2f-3a4b5c6d7e8f",
-    HOUSTON: "d4e5f6a7-8b9c-0d1e-2f3a-4b5c6d7e8f9a"
+    ASSEMBLE: "e3a1b2c3-4d5e-4f7a-8b9c-0d1e2f3a4b5c",
+    AUTOMATE: "fa1b2c3d-4e5f-4a7b-8c9d-0e1f2a3b4c5d",
+    CALL_SECURITY: "b2c3d4e5-6f7a-4b9c-8d1e-2f3a4b5c6d7e",
+    GOING_DEEPER: "c3d4e5f6-7a8b-4c0d-8e2f-3a4b5c6d7e8f",
+    HOUSTON: "d4e5f6a7-8b9c-4d1e-8f3a-4b5c6d7e8f9a",
 } as const
 
 export const DUTY_IDS = {
