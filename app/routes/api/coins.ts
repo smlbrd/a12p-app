@@ -28,7 +28,8 @@ coins.get("/:id", async (c) => {
     return c.json(coinWithDuties, 200)
 })
 
-coins.post("/", validateJson(insertCoinWithDutiesSchema), async (c) => {
+// Admins only
+coins.post("/", optionalAuth, requireAdmin, validateJson(insertCoinWithDutiesSchema), async (c) => {
     const validatedBody = c.req.valid("json")
     const newCoinWithDuties = await createCoin(validatedBody)
 
@@ -40,8 +41,20 @@ coins.post("/", validateJson(insertCoinWithDutiesSchema), async (c) => {
 })
 
 coins.patch("/:id", optionalAuth, validateJson(patchCoinWithDutiesSchema), async (c) => {
+    const isLoggedIn = c.get("isLoggedIn")
+    const isAdmin = c.get("isAdmin")
+
+    if (!isLoggedIn) {
+        return c.json({success: false, error: "UNAUTHORIZED"}, 401)
+    }
+
     const id = c.req.param("id")
     const validatedBody = c.req.valid("json")
+
+    const isModifyingAdminFields = validatedBody.name !== undefined || validatedBody.dutyIds !== undefined
+    if (isModifyingAdminFields && !isAdmin) {
+        return c.json({success: false, error: "FORBIDDEN"}, 403)
+    }
 
     const updatedCoinWithDuties = await updateCoin(id, validatedBody)
 
