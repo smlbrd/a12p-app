@@ -2,7 +2,8 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import app from "../../server.ts"
 import { db } from "../../db/db.ts"
 import { type Coin, duties } from "../../db/schema/index.ts"
-import { deleteData, dutiesData, seedData } from "../../db/seeds/seedData.ts"
+import { dutiesData } from "../../db/fixtures/index.ts"
+import { deleteData, seedData } from "../../db/seed.ts"
 
 beforeEach(async () => {
     await deleteData()

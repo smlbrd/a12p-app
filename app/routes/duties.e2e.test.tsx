@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test"
-import { deleteData, seedData } from "../db/seeds/seedData.ts"
+import { deleteData, seedData } from "../../app/db/seed.ts"
 
 test.beforeEach(async () => {
     await deleteData()
