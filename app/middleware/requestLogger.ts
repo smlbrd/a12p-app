@@ -3,19 +3,28 @@ import { db } from "../db/db.ts"
 import { requestLogs } from "../db/schema/tables.ts"
 
 export const requestLogger: MiddlewareHandler = async (c, next) => {
-    await next()
-
-    const user = c.get("user")
-    const userId = user?.sub ?? null
+    if (
+        c.req.path.startsWith("/.well-known/") ||
+        c.req.path === "/favicon.ico"
+    ) {
+        return await next()
+    }
 
     try {
-        await db.insert(requestLogs).values({
-            method: c.req.method,
-            path: c.req.path,
-            statusCode: c.res.status,
-            userId: userId,
-        })
-    } catch (error) {
-        console.error("Failed to persist request log:", error)
+        await next()
+    } finally {
+        const user = c.get("user")
+        const userId = user?.sub ?? null
+
+        try {
+            await db.insert(requestLogs).values({
+                method: c.req.method,
+                path: c.req.path,
+                statusCode: c.res ? c.res.status : 500,
+                userId: userId,
+            })
+        } catch (error) {
+            console.error("Failed to persist request log:", error)
+        }
     }
 }
