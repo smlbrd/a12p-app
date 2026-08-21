@@ -28,7 +28,7 @@ export default createRoute(optionalAuth, async (c) => {
             {coins.length === 0 ? (
                 <p className="text-gray-700 text-xs py-4 font-mono">No coins available.</p>
             ) : (
-                <CardList className="bg-white border border-gray-400 divide-y divide-gray-400 overflow-hidden">
+                <CardList className="bg-white border border-gray-400 divide-y divide-gray-400">
                     {coins.map((coin) => (
                         <Card
                             key={coin.id}

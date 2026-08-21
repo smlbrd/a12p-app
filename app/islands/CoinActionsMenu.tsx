@@ -69,36 +69,47 @@ export default function CoinActionsMenu({
                 &#8226;&#8226;&#8226;
             </button>
 
-            {/* Dropdown */}
             {isOpen && (
-                <div
-                    className="absolute right-0 mt-1 w-28 bg-white border border-gray-300 rounded shadow-sm z-20 py-1 font-mono text-xs">
-                    <button
-                        onClick={() => {
-                            setIsOpen(false)
-                            setEditInputName(coinName)
-                            setIsEditing(true)
-                        }}
-                        className="w-full text-left px-3 py-1.5 text-black hover:bg-gray-100 transition-colors"
-                    >
-                        Edit
-                    </button>
-                    <button
-                        onClick={() => {
-                            setIsOpen(false)
-                            setIsConfirmingDelete(true)
-                        }}
-                        className="w-full text-left px-3 py-1.5 text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                        Delete
-                    </button>
-                </div>
+                <>
+                    <div
+                        className="fixed inset-0 z-10 bg-transparent"
+                        onClick={() => setIsOpen(false)}
+                    />
+
+                    <div
+                        className="absolute right-0 mt-1 w-28 bg-white border border-gray-300 rounded shadow-sm z-20 py-1 font-mono text-xs">
+                        <button
+                            onClick={() => {
+                                setIsOpen(false)
+                                setEditInputName(coinName)
+                                setIsEditing(true)
+                            }}
+                            className="w-full text-left px-3 py-1.5 text-black hover:bg-gray-100 transition-colors"
+                        >
+                            Edit
+                        </button>
+                        <button
+                            onClick={() => {
+                                setIsOpen(false)
+                                setIsConfirmingDelete(true)
+                            }}
+                            className="w-full text-left px-3 py-1.5 text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                            Delete
+                        </button>
+                    </div>
+                </>
             )}
 
-            {/* Delete Modal */}
             {isConfirmingDelete && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded p-4 max-w-xs w-full border border-gray-300 shadow-lg font-sans">
+                <div
+                    className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+                    onClick={() => !isSubmitting && setIsConfirmingDelete(false)}
+                >
+                    <div
+                        className="bg-white rounded p-4 max-w-xs w-full border border-gray-300 shadow-lg font-sans"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <h3 className="text-sm font-bold text-black mb-1">Delete Coin?</h3>
                         <p className="text-xs text-gray-600 mb-4">
                             Are you sure you want to delete <span className="font-bold text-black">{coinName}</span>?
@@ -126,10 +137,15 @@ export default function CoinActionsMenu({
                 </div>
             )}
 
-            {/* Edit Modal */}
             {isEditing && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded p-4 max-w-sm w-full border border-gray-300 shadow-lg font-sans">
+                <div
+                    className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+                    onClick={() => !isSubmitting && setIsEditing(false)}
+                >
+                    <div
+                        className="bg-white rounded p-4 max-w-sm w-full border border-gray-300 shadow-lg font-sans"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <h3 className="text-sm font-bold text-black mb-3">Edit Coin</h3>
                         <form onSubmit={handleEditSubmit} className="space-y-3">
                             <div>
