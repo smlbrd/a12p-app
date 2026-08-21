@@ -63,15 +63,16 @@ export const requireAdmin = createMiddleware<Env>(async (c, next) => {
     const isLoggedIn = c.get("isLoggedIn")
     const isAdmin = c.get("isAdmin")
 
-    if (!isLoggedIn || !isAdmin) {
+    if (!isLoggedIn) {
         const isHtml = c.req.header("Accept")?.includes("text/html")
-        if (isHtml) {
-            return c.redirect("/")
-        }
+        if (isHtml) return c.redirect("/")
 
-        if (!isAdmin) {
-            return c.json({success: false, error: "Forbidden: Admin access required"}, 403)
-        }
+        return c.json({success: false, error: "Unauthorised"}, 401)
+    }
+
+    if (!isAdmin) {
+        const isHtml = c.req.header("Accept")?.includes("text/html")
+        if (isHtml) return c.redirect("/")
 
         return c.json({success: false, error: "Forbidden: Admin access required"}, 403)
     }
