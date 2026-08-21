@@ -42,22 +42,37 @@ export const optionalAuth = createMiddleware<Env>(async (c, next) => {
 })
 
 export const requireAuth = createMiddleware<Env>(async (c, next) => {
+    c.header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+
     const isLoggedIn = c.get("isLoggedIn")
+
     if (!isLoggedIn) {
+        const isHtml = c.req.header("Accept")?.includes("text/html")
+        if (isHtml) {
+            return c.redirect("/")
+        }
         return c.json({success: false, error: "Unauthorised"}, 401)
     }
+
     await next()
 })
 
 export const requireAdmin = createMiddleware<Env>(async (c, next) => {
+    c.header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+
     const isLoggedIn = c.get("isLoggedIn")
     const isAdmin = c.get("isAdmin")
 
-    if (!isLoggedIn) {
-        return c.json({success: false, error: "Unauthorised"}, 401)
-    }
+    if (!isLoggedIn || !isAdmin) {
+        const isHtml = c.req.header("Accept")?.includes("text/html")
+        if (isHtml) {
+            return c.redirect("/")
+        }
 
-    if (!isAdmin) {
+        if (!isAdmin) {
+            return c.json({success: false, error: "Forbidden: Admin access required"}, 403)
+        }
+
         return c.json({success: false, error: "Forbidden: Admin access required"}, 403)
     }
 
