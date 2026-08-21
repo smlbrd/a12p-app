@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import app from "../../server.ts"
-import { deleteData, seedData } from "../../db/seeds/seedData.ts"
+import { deleteData, seedData } from "../../db/seed.ts"
 
 const jsonReq = (path: string, body: Record<string, unknown>) => {
     return app.request(`/api${path}`, {

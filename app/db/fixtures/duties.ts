@@ -1,15 +1,3 @@
-import { db } from "../db.ts"
-import { coins, coinsToDuties, duties, users } from "../schema/index.ts"
-import { hash } from "@node-rs/argon2"
-
-export const COIN_IDS = {
-    ASSEMBLE: "e3a1b2c3-4d5e-4f7a-8b9c-0d1e2f3a4b5c",
-    AUTOMATE: "fa1b2c3d-4e5f-4a7b-8c9d-0e1f2a3b4c5d",
-    CALL_SECURITY: "b2c3d4e5-6f7a-4b9c-8d1e-2f3a4b5c6d7e",
-    GOING_DEEPER: "c3d4e5f6-7a8b-4c0d-8e2f-3a4b5c6d7e8f",
-    HOUSTON: "d4e5f6a7-8b9c-4d1e-8f3a-4b5c6d7e8f9a",
-} as const
-
 export const DUTY_IDS = {
     D1: "01010101-0101-0101-0101-010101010101",
     D2: "02020202-0202-0202-0202-020202020202",
@@ -25,14 +13,6 @@ export const DUTY_IDS = {
     D12: "12121212-1212-1212-1212-121212121212",
     D13: "13131313-1313-1313-1313-131313131313"
 } as const
-
-export const coinsData = [
-    {id: COIN_IDS.ASSEMBLE, name: "Assemble", isCompleted: false},
-    {id: COIN_IDS.AUTOMATE, name: "Automate", isCompleted: false},
-    {id: COIN_IDS.CALL_SECURITY, name: "Call Security", isCompleted: false},
-    {id: COIN_IDS.GOING_DEEPER, name: "Going Deeper", isCompleted: false},
-    {id: COIN_IDS.HOUSTON, name: "Houston, Prepare to Launch", isCompleted: false}
-]
 
 export const dutiesData = [
     {
@@ -111,55 +91,3 @@ export const dutiesData = [
             "Accept ownership of changes; embody the DevOps culture of 'you build it, you run it', with a relentless focus on the user experience."
     }
 ]
-
-export const linksData = [
-    {coinId: COIN_IDS.ASSEMBLE, dutyId: DUTY_IDS.D8},
-    {coinId: COIN_IDS.AUTOMATE, dutyId: DUTY_IDS.D5},
-    {coinId: COIN_IDS.AUTOMATE, dutyId: DUTY_IDS.D7},
-    {coinId: COIN_IDS.AUTOMATE, dutyId: DUTY_IDS.D10},
-    {coinId: COIN_IDS.CALL_SECURITY, dutyId: DUTY_IDS.D9},
-    {coinId: COIN_IDS.GOING_DEEPER, dutyId: DUTY_IDS.D11},
-    {coinId: COIN_IDS.HOUSTON, dutyId: DUTY_IDS.D5},
-    {coinId: COIN_IDS.HOUSTON, dutyId: DUTY_IDS.D7},
-    {coinId: COIN_IDS.HOUSTON, dutyId: DUTY_IDS.D10}
-]
-
-export const USER_IDS = {
-    TEST_USER: "00000000-0000-0000-0000-000000000001",
-    TEST_ADMIN: "00000000-0000-0000-0000-000000000002"
-} as const
-
-export const TEST_USER_CREDENTIALS = [{
-    id: USER_IDS.TEST_USER,
-    username: "testuser",
-    password: "Doubloon1!",
-    role: "user"
-}, {
-    id: USER_IDS.TEST_ADMIN,
-    username: "testadmin",
-    password: "Drachma1!",
-    role: "admin"
-}] as const
-
-export async function seedData() {
-    const usersData = await Promise.all(
-        TEST_USER_CREDENTIALS.map(async (cred) => ({
-            id: cred.id,
-            username: cred.username,
-            passwordHash: await hash(cred.password),
-            role: cred.role
-        }))
-    )
-
-    await db.insert(users).values(usersData).onConflictDoNothing({target: users.id})
-    await db.insert(coins).values(coinsData).onConflictDoNothing({target: coins.id})
-    await db.insert(duties).values(dutiesData).onConflictDoNothing({target: duties.id})
-    await db.insert(coinsToDuties).values(linksData).onConflictDoNothing()
-}
-
-export async function deleteData() {
-    await db.delete(coinsToDuties)
-    await db.delete(duties)
-    await db.delete(coins)
-    await db.delete(users)
-}
