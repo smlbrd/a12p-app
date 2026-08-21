@@ -1,92 +1,114 @@
-# Apprenticeship Coin App
+# a12p-app
 
-This app is designed to manage apprenticeship coins, their completion status and their associated duties.
+A web application built with [Hono](https://hono.dev/), [HonoX](https://github.com/honox/honox),
+and [React](https://react.dev/).
 
-## Features
+## 🚀 Overview
 
-The application allows a user to view coin progress.
+`a12p-app` is a full-stack application featuring a backend powered by Hono and a modern frontend
+utilising HonoX's island architecture. It leverages [Drizzle ORM](https://orm.drizzle.team/) for type-safe database
+interactions with PostgreSQL and [Tailwind CSS](https://tailwindcss.com/) for styling.
 
-## API
+## ✨ Key Features
 
-The API supports full CRUD (Create, Read, Update, Delete) operations for coins:
+- **Backend**: High-performance API and server-side rendering using Hono and HonoX.
+- **Database**: Type-safe schema management with Drizzle ORM and PostgreSQL.
+- **Frontend**: Interactive UI components using React (Islands architecture) and Tailwind CSS.
+- **Testing**: Comprehensive test suite including Unit, Integration, and E2E tests (Vitest & Playwright).
+- **Infrastructure**: Containerised environment with Docker and Infrastructure as Code (IaC) via Terraform.
+- **Security**: Secure password hashing using Argon2.
+- **Validation**: Schema-based request validation using Zod.
 
-- List all available coins: `GET /coins`
-- Get details of a specific coin: `GET /coins/:id`
-    - Includes any linked duties
-- Create a coin: `POST /coins`
-    - Note: Validation prevents duplicate or malformed coin names.
-- Update a coin: `PATCH /coins/:id`
-    - Valid updates:
-        - Name
-        - Description
-        - Completion Status
-        - Linked Duties
-- Delete a coin: `DELETE /coins/:id`
+## 🛠️ Tech Stack
 
-## Getting Started
+- **Runtime/Framework**: Hono, HonoX, Node.js
+- **Frontend**: React, Tailwind CSS
+- **ORM**: Drizzle ORM
+- **Database**: PostgreSQL
+- **Testing**: Vitest, Playwright
+- **Build Tool**: Vite, Esbuild
+- **Linting/Formatting**: ESLint, Prettier, Husky, lint-staged
+- **Deployment/Infrastructure**: Docker, Terraform
+
+## 🚦 Getting Started
 
 ### Prerequisites
 
-[Node.js](https://nodejs.org/en) (v24, or use `nvm` with the `.nvmrc` file)
-
-[Docker](https://www.docker.com/)
+- Node.js (latest LTS recommended)
+- npm or yarn
+- Docker and Docker Compose (for local database/services)
 
 ### Installation
 
-Install dependencies:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/smlbrd/a12p-app.git
+   cd a12p-app
+   ```
 
-```bash
-npm install
-```
-
-Set up your environment variables by creating a `.env` file in the root directory and configuring your local database
-connection parameters. See `.env.example` for examples.
-
-### Running the project
-
-The project uses a Docker container to manage the database for testing and local development. Run the test database
-container:
-
-```bash
-npm run up
-```
-
-Before running the API or your tests for the first time (or whenever database schemas change), sync and seed your
-database:
-
-```bash
-npm run db:setup:local
-````
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
 ### Development
 
-Run a local version of the API:
+To start the development server:
 
 ```bash
 npm run dev
+```
+
+### Database Setup
+
+To set up and seed your local database:
+
+```bash
+# Push schema changes and seed local database
+npm run db:setup:local
 ```
 
 ### Testing
 
-Run the test suite:
+Run the full suite of tests:
 
 ```bash
-npm test
-```
+# Unit tests
+npm run test:unit
 
-> Note: This command will automatically run pending database migrations and seed fresh data into your Docker container
-> before executing the tests:
+# Integration tests
+npm run test:integration
 
-Check the code coverage:
+# End-to-end tests
+npm run test:e2e
 
-```bash
+# Coverage report
 npm run coverage
 ```
 
-### Development
+### Deployment
 
-Run a local version of the API:
+To run the application using Docker Compose:
 
 ```bash
-npm run dev
+# Start services
+npm run up
+
+# Stop services
+npm run down
 ```
+
+## 📁 Project Structure
+
+- `app/`: Main application logic.
+    - `routes/`: Hono routes for API and UI.
+    - `components/`: Shared React components.
+    - `islands/`: Interactive React components (Islands).
+    - `db/`: Database schema, migrations, and seeding.
+    - `services/`: Business logic and services.
+    - `middleware/`: Application middleware (auth, error handling, etc.).
+- `drizzle/`: SQL migration files.
+- `terraform/`: Terraform configuration for infrastructure.
+- `scripts/`: Utility scripts for database management and seeding.
+- `test-results/`: Test execution artifacts.
+- `dist/`: Production build artifacts.
