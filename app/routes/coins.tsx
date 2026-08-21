@@ -22,6 +22,7 @@ export default createRoute(optionalAuth, async (c) => {
                 description="View coins and their linked duties."
                 actionLabel={isLoggedIn ? "Log Out" : "Log In"}
                 isLoggedIn={isLoggedIn}
+                isAdmin={isAdmin}
             />
 
             {coins.length === 0 ? (

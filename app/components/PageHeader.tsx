@@ -15,8 +15,7 @@ export default function PageHeader({
                                        description,
                                        actionLabel,
                                        isLoggedIn = false,
-                                       isAdmin = false,
-                                       showHomeLink = false,
+                                       isAdmin = false
                                    }: PageHeaderProps) {
     return (
         <header className="flex flex-col gap-6 border-b border-gray-600 pb-5">
@@ -29,7 +28,7 @@ export default function PageHeader({
 
                 <div className="flex items-center gap-3">
                     {isAdmin && (
-                        <ButtonLink href="/admin" variant="solid">
+                        <ButtonLink href="/admin/requests" variant="solid">
                             Admin Panel
                         </ButtonLink>
                     )}
