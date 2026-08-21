@@ -5,6 +5,7 @@ import { requestLogs } from "../db/schema/tables.ts"
 export const requestLogger: MiddlewareHandler = async (c, next) => {
     if (
         c.req.path.startsWith("/.well-known/") ||
+        c.req.path.startsWith("/static") ||
         c.req.path === "/favicon.ico"
     ) {
         return await next()
