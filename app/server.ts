@@ -4,12 +4,16 @@ import { secureHeaders } from "hono/secure-headers"
 import { serveStatic } from "@hono/node-server/serve-static"
 import { optionalAuth } from "./middleware/auth.ts"
 import { errorHandler } from "./middleware/errorHandler.ts"
+import { requestLogger } from "./middleware/requestLogger.ts"
 
-const app = createApp()
+const app = createApp({
+    init(app) {
+        app.use("*", requestLogger)
+        app.use("/static/*", serveStatic({root: "./"}))
+        app.use("*", secureHeaders(), optionalAuth)
+    }
+})
 
-app.use("/static/*", serveStatic({root: "./"}))
-
-app.use("*", secureHeaders(), optionalAuth)
 app.onError(errorHandler)
 
 export const handler = handle(app)
