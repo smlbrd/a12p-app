@@ -6,6 +6,8 @@ interface CoinActionsMenuProps {
     onDelete: () => Promise<void>
 }
 
+const VALID_NAME_REGEX = /^[a-zA-Z0-9 ,.!]+$/
+
 export default function CoinActionsMenu({
                                             coinName,
                                             onUpdateName,
@@ -24,8 +26,19 @@ export default function CoinActionsMenu({
         if (isSubmitting) return
 
         const trimmed = editInputName.trim()
-        if (!trimmed || trimmed === coinName) {
+
+        if (trimmed === coinName) {
             setIsEditing(false)
+            return
+        }
+
+        if (trimmed.length === 0 || trimmed.length > 255) {
+            setErrorMsg("Name must be between 1 and 255 characters.")
+            return
+        }
+
+        if (!VALID_NAME_REGEX.test(trimmed)) {
+            setErrorMsg("Please use valid characters only: a-z A-Z 0-9 , . !")
             return
         }
 
@@ -35,8 +48,12 @@ export default function CoinActionsMenu({
         try {
             await onUpdateName(trimmed)
             setIsEditing(false)
-        } catch {
-            setErrorMsg("Failed to save changes.")
+        } catch (err) {
+            if (typeof err === "string") {
+                setErrorMsg(err)
+            } else {
+                setErrorMsg("An unexpected error occurred. Please try again.")
+            }
         } finally {
             setIsSubmitting(false)
         }
