@@ -16,6 +16,9 @@ const loginSchema = z.object({
     password: z.string().min(1, "Password is required")
 })
 
+// How long an issued session token remains valid, in seconds.
+export const SESSION_DURATION_SECONDS = 60 * 60 * 2 // 2 hours
+
 auth.post("/login", validate("json", loginSchema), async (c) => {
     const {username, password} = c.req.valid("json")
     const {JWT_SECRET, NODE_ENV} = env<{ JWT_SECRET: string; NODE_ENV: string }>(c)
@@ -47,7 +50,12 @@ auth.post("/login", validate("json", loginSchema), async (c) => {
 
     if (user && (await verify(user.passwordHash, password))) {
         const token = await sign(
-            {sub: user.id, role: user.role, username: user.username},
+            {
+                sub: user.id,
+                role: user.role,
+                username: user.username,
+                exp: Math.floor(Date.now() / 1000) + SESSION_DURATION_SECONDS
+            },
             JWT_SECRET
         )
 
@@ -55,7 +63,8 @@ auth.post("/login", validate("json", loginSchema), async (c) => {
             httpOnly: true,
             secure: NODE_ENV === "production",
             sameSite: "Lax",
-            path: "/"
+            path: "/",
+            maxAge: SESSION_DURATION_SECONDS
         })
 
         await db.delete(loginAttempts).where(eq(loginAttempts.username, username))
