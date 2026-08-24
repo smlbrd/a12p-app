@@ -1,5 +1,5 @@
 import { verify } from "@node-rs/argon2"
-import { eq } from "drizzle-orm"
+import { and, eq, gt } from "drizzle-orm"
 import { Hono } from "hono"
 import { env } from "hono/adapter"
 import { deleteCookie, setCookie } from "hono/cookie"
@@ -7,7 +7,7 @@ import { sign } from "hono/jwt"
 import { z } from "zod"
 import { db } from "../../db/db.ts"
 import { validate } from "../../middleware/validate.ts"
-import { users } from "../../db/schema/index.ts"
+import { loginAttempts, users } from "../../db/schema/index.ts"
 
 const auth = new Hono()
 
@@ -22,6 +22,21 @@ auth.post("/login", validate("json", loginSchema), async (c) => {
 
     if (!JWT_SECRET) {
         throw new Error("JWT_SECRET environment variable is missing.")
+    }
+
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000)
+    const recentAttempts = await db
+        .select()
+        .from(loginAttempts)
+        .where(
+            and(
+                eq(loginAttempts.username, username),
+                gt(loginAttempts.createdAt, oneMinuteAgo)
+            )
+        )
+
+    if (recentAttempts.length >= 5) {
+        return c.text("Too many attempts - please try again later", 429)
     }
 
     const [user] = await db
@@ -43,7 +58,15 @@ auth.post("/login", validate("json", loginSchema), async (c) => {
             path: "/"
         })
 
+        await db.delete(loginAttempts).where(eq(loginAttempts.username, username))
+
         return c.json({success: true, username: user.username})
+    }
+
+    if (user) {
+        await db.insert(loginAttempts).values({
+            username: username
+        })
     }
 
     return c.text("Unauthorised: Invalid credentials", 401)
