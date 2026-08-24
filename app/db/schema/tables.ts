@@ -42,3 +42,12 @@ export const loginAttempts = coinsSchema.table("login_attempts", {
 }, (table) => ({
     usernameCreatedAtIdx: index("username_created_at_idx").on(table.username, table.createdAt),
 }))
+
+export const requestLogs = coinsSchema.table("request_logs", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    method: varchar("method", {length: 10}).notNull(),
+    path: text("path").notNull(),
+    statusCode: integer("status_code").notNull(),
+    userId: uuid("user_id").references(() => users.id, {onDelete: "set null"}),
+    timestamp: timestamp("timestamp", {withTimezone: true}).defaultNow().notNull(),
+})
