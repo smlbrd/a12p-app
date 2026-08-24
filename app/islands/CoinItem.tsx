@@ -24,9 +24,6 @@ export default function CoinItem({
                                      duties = [],
                                  }: CoinItemProps) {
     const [name, setName] = useState(initialName)
-    const [isDeleted, setIsDeleted] = useState(false)
-
-    if (isDeleted) return null
 
     const handleUpdateName = async (newName: string) => {
         const previousName = name
@@ -48,7 +45,8 @@ export default function CoinItem({
     }
 
     const handleDelete = async () => {
-        setIsDeleted(true)
+        const cardElement = document.getElementById(`coin-${coinId}`)
+        if (cardElement) cardElement.classList.add("hidden")
 
         try {
             const res = await fetch(`/api/coins/${coinId}`, {
@@ -58,7 +56,7 @@ export default function CoinItem({
             if (!res.ok) throw new Error("Failed to delete coin")
         } catch (error) {
             console.error("Delete failed, restoring item:", error)
-            setIsDeleted(false)
+            if (cardElement) cardElement.classList.remove("hidden")
             alert("Failed to delete coin. Restoring item.")
         }
     }
