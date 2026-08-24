@@ -29,6 +29,16 @@ export default function LoginModal() {
                 body: JSON.stringify(data),
             })
 
+            if (response.status === 401) {
+                setError("Incorrect username or password.")
+                return
+            }
+
+            if (response.status === 429) {
+                setError("Too many login attempts. Please try again later.")
+                return
+            }
+
             if (response.ok) {
                 const result = await response.json()
                 if (result.success) {
