@@ -1,4 +1,4 @@
-import { boolean, integer, pgSchema, text, uuid, varchar } from "drizzle-orm/pg-core"
+import { boolean, index, integer, pgSchema, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core"
 
 export const coinsSchema = pgSchema("coins")
 
@@ -34,3 +34,11 @@ export const users = coinsSchema.table("users", {
     passwordHash: text("password_hash").notNull(),
     role: roleEnum("role").default("user").notNull(),
 })
+
+export const loginAttempts = coinsSchema.table("login_attempts", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    username: varchar("username", {length: 255}).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+    usernameCreatedAtIdx: index("username_created_at_idx").on(table.username, table.createdAt),
+}))

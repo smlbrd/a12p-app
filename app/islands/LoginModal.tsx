@@ -29,14 +29,17 @@ export default function LoginModal() {
                 body: JSON.stringify(data),
             })
 
-            const result = await response.json()
-
-            if (response.ok && result.success) {
-                window.location.reload()
-            } else {
-                setError(result.error || "Login failed")
+            if (response.ok) {
+                const result = await response.json()
+                if (result.success) {
+                    window.location.reload()
+                    return
+                }
             }
-        } catch {
+
+            const errorText = await response.text()
+            setError(errorText || "Login failed")
+        } catch (e) {
             setError("An unexpected error occurred.")
         } finally {
             setIsSubmitting(false)
