@@ -9,6 +9,7 @@ import CardList from "../components/CardList.tsx"
 import Card from "../components/Card.tsx"
 import Badge from "../components/Badge.tsx"
 import CoinItem from "../islands/CoinItem.tsx"
+import CreateCoinModal from "../islands/CreateCoinModal.tsx"
 
 export default createRoute(optionalAuth, async (c) => {
     const coins = await getAllCoinsWithDuties(db)
@@ -25,7 +26,7 @@ export default createRoute(optionalAuth, async (c) => {
                 isAdmin={isAdmin}
             />
 
-            {coins.length === 0 ? (
+            {coins.length === 0 && !isAdmin ? (
                 <p className="text-gray-700 text-xs py-4 font-mono">No coins available.</p>
             ) : (
                 <CardList className="bg-white border border-gray-400 divide-y divide-gray-400">
@@ -51,14 +52,18 @@ export default createRoute(optionalAuth, async (c) => {
                                             type="checkbox"
                                             checked={coin.isCompleted}
                                             disabled
-                                            aria-label={`${coin.name} status: ${coin.isCompleted ? "Completed" : "Incomplete"}`}
+                                            aria-label={`${coin.name} status: ${
+                                                coin.isCompleted ? "Completed" : "Incomplete"
+                                            }`}
                                             className="h-4 w-4 rounded border-gray-300 text-emerald-600 accent-emerald-600 cursor-not-allowed opacity-60"
                                         />
-                                        <h2 className={`text-sm font-bold font-sans ${
-                                            coin.isCompleted
-                                                ? "line-through text-gray-400"
-                                                : "text-black"
-                                        }`}>
+                                        <h2
+                                            className={`text-sm font-bold font-sans ${
+                                                coin.isCompleted
+                                                    ? "line-through text-gray-400"
+                                                    : "text-black"
+                                            }`}
+                                        >
                                             {coin.name}
                                         </h2>
                                     </div>
@@ -82,6 +87,7 @@ export default createRoute(optionalAuth, async (c) => {
                             )}
                         </Card>
                     ))}
+                    {isAdmin && <CreateCoinModal />}
                 </CardList>
             )}
         </PageContainer>,
