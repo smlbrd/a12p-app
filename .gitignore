@@ -21,3 +21,6 @@ test-results
 
 # Terraform
 *.tfvars
+
+# Learning Week
+CLAUDE_SECURITY_REPORT.md
