@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
+import { decode } from "hono/jwt"
 import app from "../../server.ts"
 import { deleteData, seedData } from "../../db/seed.ts"
+import { SESSION_DURATION_SECONDS } from "./auth.ts"
 
 const jsonReq = (path: string, body: Record<string, unknown>) => {
     return app.request(`/api${path}`, {
@@ -30,6 +32,22 @@ describe("POST /api/auth/login", () => {
         const setCookieHeader = res.headers.get("Set-Cookie")
         expect(setCookieHeader).toContain("auth_token=")
         expect(setCookieHeader).toContain("HttpOnly")
+        expect(setCookieHeader).toContain(`Max-Age=${SESSION_DURATION_SECONDS}`)
+    })
+
+    test("should issue a JWT with an expiry claim set to SESSION_DURATION_SECONDS from now", async () => {
+        const beforeLogin = Math.floor(Date.now() / 1000)
+        const res = await jsonReq("/auth/login", {username: "testuser", password: "Doubloon1!"})
+        const afterLogin = Math.floor(Date.now() / 1000)
+
+        const setCookieHeader = res.headers.get("Set-Cookie")
+        const token = setCookieHeader?.match(/auth_token=([^;]+)/)?.[1]
+        expect(token).toBeDefined()
+
+        const {payload} = decode(token!)
+        expect(payload.exp).toBeTypeOf("number")
+        expect(payload.exp as number).toBeGreaterThanOrEqual(beforeLogin + SESSION_DURATION_SECONDS)
+        expect(payload.exp as number).toBeLessThanOrEqual(afterLogin + SESSION_DURATION_SECONDS)
     })
 
     test.each([

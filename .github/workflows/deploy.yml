@@ -71,7 +71,7 @@ jobs:
         run: terraform apply -var="image_tag=${{ github.sha }}" -auto-approve
         working-directory: ./terraform
 
-      - name: Push Database Schema
+      - name: Apply Database Migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npx drizzle-kit push
+        run: npm run db:migrate
